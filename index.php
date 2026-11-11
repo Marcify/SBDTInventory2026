@@ -53,20 +53,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+
+    <link rel="stylesheet" href="./assets/css/styles.css">
 </head>
-<body>
-    <h1>Login</h1>
-    <?php if ($error): ?>
-        <p style="color: red;"><?php echo htmlspecialchars($error); ?></p>
-    <?php endif; ?>
-    <form method="post">
-        <label for="username">Username:</label>
-        <input type="text" id="username" name="username" required>
-        <br>
-        <label for="password">Password:</label>
-        <input type="password" id="password" name="password" required>
-        <br>
-        <button type="submit">Login</button>
-    </form>
+<body class="login-page">
+
+    <div class="login-card">
+        <img class="logo" src="./assets/images/sbdt-logo.png" alt="SBDT Logo">
+
+        <h1 class="system-name">Inventory Management System</h1>
+        <p class="description">Sign in to your account</p>
+
+        <?php if ($error): ?>
+            <p class="message error"><?php echo htmlspecialchars($error); ?></p>
+        <?php endif; ?>
+        <form method="post">
+            <div class="form-group">
+                <label class="form-label" for="username">Username:</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+
+            <button type="submit">Login</button>
+        </form>
+    </div>
+    
 </body>
 </html>
