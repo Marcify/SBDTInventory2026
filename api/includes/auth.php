@@ -2,11 +2,30 @@
 declare(strict_types=1);
 
 function api_current_user(): ?array {
-    if (empty($_SESSION['user_id'])) return null;
+    if (empty($_SESSION['user_id'])) {
+        return null;
+    }
+
+    global $pdo;
+
+    $stmt = $pdo->prepare(
+        'SELECT id, username, role
+         FROM users
+         WHERE id = ? AND is_active = TRUE'
+    );
+
+    $stmt->execute([$_SESSION['user_id']]);
+    $user = $stmt->fetch();
+
+    if (!$user) {
+        $_SESSION = [];
+        return null;
+    }
+
     return [
-        'id'       => (int)$_SESSION['user_id'],
-        'username' => $_SESSION['username'] ?? null,
-        'role'     => $_SESSION['role'] ?? null,
+        'id' => (int)$user['id'],
+        'username' => $user['username'],
+        'role' => $user['role'],
     ];
 }
 

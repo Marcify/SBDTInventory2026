@@ -2,8 +2,16 @@
 declare(strict_types=1);
 
 route('POST', '/auth/login', function () {
-    $username = trim((string)body('username', ''));
-    $password = (string)body('password', '');
+    $username = body('username', '');
+    $password = body('password', '');
+
+    if (!is_string($username) || !is_string($password)) {
+        json_validation([
+            'credentials' => 'Username and password must be strings',
+        ]);
+    }
+
+    $username = trim($username);
 
     if ($username === '' || $password === '') {
         json_validation(['credentials' => 'Username and password required']);
