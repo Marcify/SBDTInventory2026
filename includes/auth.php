@@ -22,14 +22,38 @@ function current_user() {
 }
 
 /**
- * Force login. Redirect to login.php if not logged in.
- * Used on top of pages that require authentication.
+ * Force login. Redirect to index.php if not logged in.
+ * Revalidates the account against the database on every
+ * protected request, so deactivation and role changes
+ * take effect immediately.
  */
 function require_login() {
     if (!is_logged_in()) {
         header('Location: /SBDTInventory/index.php');
         exit();
     }
+
+    global $pdo;
+
+    $stmt = $pdo->prepare(
+        'SELECT id, username, role
+         FROM users
+         WHERE id = ? AND is_active = TRUE'
+    );
+    $stmt->execute([$_SESSION['user_id']]);
+    $user = $stmt->fetch();
+
+    if (!$user) {
+        // Account deleted or deactivated: kill the session.
+        session_unset();
+        session_destroy();
+        header('Location: /SBDTInventory/index.php');
+        exit();
+    }
+
+    // Keep the session in sync with the database (e.g., after a role change).
+    $_SESSION['username'] = $user['username'];
+    $_SESSION['role'] = $user['role'];
 }
 
 /**
