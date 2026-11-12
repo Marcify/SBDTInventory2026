@@ -24,6 +24,48 @@ route('GET', '/categories', function () {
     json_success(['categories' => $categories]);
 });
 
+// Get a single category by ID.
+route('GET', '/categories/{id}', function ($id) {
+    api_require_login();
+
+    $categoryId = filter_var(
+        $id,
+        FILTER_VALIDATE_INT,
+        ['options' => ['min_range' => 1]]
+    );
+
+    if ($categoryId === false) {
+        json_validation([
+            'id' => 'Category ID must be a positive integer',
+        ]);
+    }
+
+    global $pdo;
+
+    $stmt = $pdo->prepare(
+        'SELECT c.id, c.name, COUNT(i.id) AS item_count
+         FROM categories c
+         LEFT JOIN items i ON i.category_id = c.id
+         WHERE c.id = ?
+         GROUP BY c.id, c.name'
+    );
+
+    $stmt->execute([$categoryId]);
+    $category = $stmt->fetch();
+
+    if (!$category) {
+        json_error('Category not found', 404);
+    }
+
+    json_success([
+        'category' => [
+            'id' => (int)$category['id'],
+            'name' => $category['name'],
+            'item_count' => (int)$category['item_count'],
+        ],
+    ]);
+});
+
 // Create a category.
 route('POST', '/categories', function () {
     api_require_admin();
