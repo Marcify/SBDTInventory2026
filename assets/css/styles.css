@@ -1982,3 +1982,47 @@ tr.row-returned .badge {
 .table-wrapper .row-actions form {
     display: inline-flex;
 }
+
+/* 29. Filter row inside table container (status + search combos) */
+
+.table-search .filter-form {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+}
+
+.table-search .filter-select {
+    flex: 0 0 170px;
+    padding: 8px 10px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface);
+    font-size: 14px;
+}
+
+.table-search .filter-input {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 8px 10px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface);
+    font-size: 14px;
+}
+
+.table-search .search-btn,
+.table-search .cancel-btn {
+    flex: 0 0 auto;
+}
+
+@media (max-width: 720px) {
+    .table-search .filter-form {
+        flex-wrap: wrap;
+    }
+
+    .table-search .filter-select {
+        flex: 1 1 100%;
+    }
+}

@@ -22,12 +22,65 @@ $active_nav = $active_nav ?? '';
                 <span class="user-avatar"><?= strtoupper(mb_substr(htmlspecialchars($user['name'] ?? $user['username']), 0, 1)) ?></span>
                 <span class="user-name"><?= htmlspecialchars($user['name'] ?? $user['username']) ?></span>
             </div>
+            <button type="button" class="profile-button" data-open-pw>Change Password</button>
             <form action="/SBDTInventory/logout.php" method="POST">
                 <?= csrf_field() ?>
                 <button type="submit" class="profile-button">Log out</button>
             </form>
         </div>
     </header>
+
+    <div class="modal" id="pw-modal">
+        <div class="modal-dialog">
+            <div class="password-modal-card">
+                <h2 class="modal-title">Change Password</h2>
+                <form action="/SBDTInventory/change_password.php" method="POST">
+                    <?= csrf_field() ?>
+                    <div class="form-group">
+                        <label class="form-label" for="pw-current">Current password</label>
+                        <input type="password" id="pw-current" name="current_password" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="pw-new">New password</label>
+                        <input type="password" id="pw-new" name="new_password" minlength="8" maxlength="72" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="pw-confirm">Confirm new password</label>
+                        <input type="password" id="pw-confirm" name="confirm_password" required>
+                    </div>
+                    <div class="password-modal-actions">
+                        <button type="button" class="cancel-btn" data-close-pw>Cancel</button>
+                        <button type="submit" class="save-btn">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var modal = document.getElementById('pw-modal');
+            if (!modal) return;
+
+            document.querySelectorAll('[data-open-pw]').forEach(function (el) {
+                el.addEventListener('click', function () {
+                    modal.classList.add('show');
+                });
+            });
+
+            modal.querySelectorAll('[data-close-pw]').forEach(function (el) {
+                el.addEventListener('click', function () {
+                    modal.classList.remove('show');
+                });
+            });
+
+            modal.addEventListener('click', function (event) {
+                if (event.target === modal) {
+                    modal.classList.remove('show');
+                }
+            });
+        });
+    </script>
 
     <div class="layout">
         <aside class="sidebar">
@@ -59,3 +112,8 @@ $active_nav = $active_nav ?? '';
         </aside>
 
         <main class="main">
+        <?php if (($_GET['pw'] ?? '') === 'changed'): ?>
+            <p class="message success">Password updated successfully.</p>
+        <?php elseif (isset($_GET['pw_error'])): ?>
+            <p class="message error"><?= htmlspecialchars($_GET['pw_error']) ?></p>
+        <?php endif; ?>
