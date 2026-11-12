@@ -11,77 +11,45 @@ $stmt = $pdo->query("
     ORDER BY categories.name ASC, items.name ASC
 ");
 $items = $stmt->fetchAll();
+
+$page_title = 'Browse Items';
+$active_nav = 'items';
+
+require __DIR__ . '/../../includes/layout_start.php';
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
+<div class="toolbar">
+    <h1 class="page-title">Browse Items</h1>
+    <a href="../borrowings/create.php" class="borrow-btn">Go to Borrow Form</a>
+</div>
 
-<head>
-    <meta charset="UTF-8">
-    <title>Browse Items</title>
-    <style>
-        body {
-            font-family: sans-serif;
-            margin: 40px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        th,
-        td {
-            border: 1px solid #ccc;
-            padding: 8px;
-            text-align: left;
-        }
-
-        th {
-            background: #f4f4f4;
-        }
-
-        .btn {
-            text-decoration: none;
-            padding: 5px 10px;
-            background: #333;
-            color: white;
-            border-radius: 3px;
-            font-size: 14px;
-        }
-    </style>
-</head>
-
-<body>
-    <h1>Browse Items</h1>
-    <a href="/SBDTInventory/dancer/dashboard.php">Back to Dashboard</a> |
-    <a href="../borrowings/create.php" class="btn">Go to Borrow Form</a>
-
-    <table>
-        <thead>
-            <tr>
-                <th>Category</th>
-                <th>Item Name</th>
-                <th>Available Stock</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php if (empty($items)): ?>
+<div class="content-box">
+    <div class="table-wrapper">
+        <table>
+            <thead>
                 <tr>
-                    <td colspan="3" style="text-align: center;">No items available for borrowing right now.</td>
+                    <th>Category</th>
+                    <th>Item Name</th>
+                    <th>Available Stock</th>
                 </tr>
-            <?php else: ?>
-                <?php foreach ($items as $item): ?>
+            </thead>
+            <tbody>
+                <?php if (empty($items)): ?>
                     <tr>
-                        <td><?= htmlspecialchars($item['category_name']) ?></td>
-                        <td><?= htmlspecialchars($item['name']) ?></td>
-                        <td><strong><?= $item['available_stock'] ?></strong></td>
+                        <td colspan="3" class="empty">No items available for borrowing right now.</td>
                     </tr>
-                <?php endforeach; ?>
-            <?php endif; ?>
-        </tbody>
-    </table>
-</body>
+                <?php else: ?>
+                    <?php foreach ($items as $item): ?>
+                        <tr>
+                            <td><?= htmlspecialchars($item['category_name']) ?></td>
+                            <td><?= htmlspecialchars($item['name']) ?></td>
+                            <td class="quantity"><?= $item['available_stock'] ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
 
-</html>
+<?php require __DIR__ . '/../../includes/layout_end.php'; ?>

@@ -4,75 +4,43 @@ require_admin();
 
 $stmt = $pdo->query("SELECT * FROM categories ORDER BY name ASC");
 $categories = $stmt->fetchAll();
+
+$page_title = 'Manage Categories';
+$active_nav = 'categories';
+
+require __DIR__ . '/../../includes/layout_start.php';
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
+<div class="toolbar">
+    <h1 class="page-title">Manage Categories</h1>
+    <a href="create.php" class="add-btn">+ Add New Category</a>
+</div>
 
-<head>
-    <meta charset="UTF-8">
-    <title>Manage Categories</title>
-    <style>
-        body {
-            font-family: sans-serif;
-            margin: 40px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        th,
-        td {
-            border: 1px solid #ccc;
-            padding: 8px;
-            text-align: left;
-        }
-
-        th {
-            background: #f4f4f4;
-        }
-
-        .btn {
-            text-decoration: none;
-            padding: 5px 10px;
-            background: #333;
-            color: white;
-            border-radius: 3px;
-            font-size: 14px;
-        }
-    </style>
-</head>
-
-<body>
-    <h1>Manage Categories</h1>
-    <a href="/SBDTInventory/admin/dashboard.php">Back to Dashboard</a> |
-    <a href="create.php" class="btn">+ Add New Category</a>
-
-    <table>
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Category Name</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php if (empty($categories)): ?>
+<div class="content-box">
+    <div class="table-wrapper">
+        <table>
+            <thead>
                 <tr>
-                    <td colspan="2" style="text-align: center;">No categories found.</td>
+                    <th>ID</th>
+                    <th>Category Name</th>
                 </tr>
-            <?php else: ?>
-                <?php foreach ($categories as $cat): ?>
+            </thead>
+            <tbody>
+                <?php if (empty($categories)): ?>
                     <tr>
-                        <td><?= $cat['id'] ?></td>
-                        <td><?= htmlspecialchars($cat['name']) ?></td>
+                        <td colspan="2" class="empty">No categories found.</td>
                     </tr>
-                <?php endforeach; ?>
-            <?php endif; ?>
-        </tbody>
-    </table>
-</body>
+                <?php else: ?>
+                    <?php foreach ($categories as $cat): ?>
+                        <tr>
+                            <td><?= $cat['id'] ?></td>
+                            <td><?= htmlspecialchars($cat['name']) ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
 
-</html>
+<?php require __DIR__ . '/../../includes/layout_end.php'; ?>

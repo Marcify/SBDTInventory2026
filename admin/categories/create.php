@@ -23,69 +23,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
+
+$page_title = 'Add Category';
+$active_nav = 'categories';
+
+require __DIR__ . '/../../includes/layout_start.php';
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <title>Add Category</title>
-    <style>
-        body {
-            font-family: sans-serif;
-            margin: 40px;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        label {
-            display: block;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-
-        input[type="text"] {
-            padding: 8px;
-            width: 300px;
-        }
-
-        button {
-            padding: 10px 15px;
-            background: #333;
-            color: white;
-            border: none;
-            cursor: pointer;
-            border-radius: 3px;
-        }
-
-        .error {
-            color: red;
-            margin-bottom: 15px;
-        }
-    </style>
-</head>
-
-<body>
-    <h1>Add New Category</h1>
-    <a href="index.php">&larr; Back to Categories</a>
-    <br><br>
+<div class="edit-panel">
+    <h3 class="section-title">Add New Category</h3>
 
     <?php if ($error): ?>
-        <p class="error"><?= htmlspecialchars($error) ?></p>
+        <p class="message error"><?= htmlspecialchars($error) ?></p>
     <?php endif; ?>
 
     <form method="POST">
         <?= csrf_field() ?>
         <div class="form-group">
-            <label>Category Name</label>
-            <input type="text" name="name" required placeholder="e.g. Costumes, Props, Shoes">
+            <label class="form-label" for="name">Category Name</label>
+            <input type="text" id="name" name="name" required placeholder="e.g. Costumes, Props, Shoes">
         </div>
 
-        <button type="submit">Save Category</button>
+        <div class="form-group-spaced">
+            <button type="submit" class="save-btn">Save Category</button>
+            <a href="index.php" class="cancel-btn">Cancel</a>
+        </div>
     </form>
-</body>
+</div>
 
-</html>
+<?php require __DIR__ . '/../../includes/layout_end.php'; ?>

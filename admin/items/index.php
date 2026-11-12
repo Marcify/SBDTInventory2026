@@ -1,126 +1,93 @@
 <?php
 require_once __DIR__ . '/../../includes/auth.php';
 require_admin();
+require_once __DIR__ . '/../../includes/pagination.php';
 
-// Fetch all items with their category names
+$totalRows = (int)$pdo->query("SELECT COUNT(*) FROM items")->fetchColumn();
+[$page, $perPage, $offset, $totalPages] = pagination_init($totalRows, 20);
+
+// Fetch all items with their category names (paginated)
 $sql = "SELECT items.*, categories.name AS category_name 
         FROM items 
         LEFT JOIN categories ON items.category_id = categories.id 
-        ORDER BY items.name ASC";
-$stmt = $pdo->query($sql);
+        ORDER BY items.name ASC
+        LIMIT ? OFFSET ?";
+$stmt = $pdo->prepare($sql);
+$stmt->bindValue(1, $perPage, PDO::PARAM_INT);
+$stmt->bindValue(2, $offset, PDO::PARAM_INT);
+$stmt->execute();
 $items = $stmt->fetchAll();
 
+$page_title = 'Manage Items';
+$active_nav = 'items';
+
+require __DIR__ . '/../../includes/layout_start.php';
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
+<div class="toolbar">
+    <h1 class="page-title">Manage Items</h1>
+    <a href="create.php" class="add-btn">+ Add New Item</a>
+</div>
 
-<head>
-    <meta charset="UTF-8">
-    <title>Manage Items</title>
-    <style>
-        body {
-            font-family: sans-serif;
-            margin: 40px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        th,
-        td {
-            border: 1px solid #ccc;
-            padding: 8px;
-            text-align: left;
-        }
-
-        th {
-            background: #f4f4f4;
-        }
-
-        .btn {
-            text-decoration: none;
-            padding: 5px 10px;
-            background: #333;
-            color: white;
-            border-radius: 3px;
-            font-size: 14px;
-        }
-
-        .btn-danger {
-            background: #c00;
-        }
-
-        .top-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-    </style>
-</head>
-
-<body>
-    <div class="top-bar">
-        <h1>Manage Items</h1>
-        <div>
-            <a href="/SBDTInventory/admin/dashboard.php">Back to Dashboard</a> |
-            <a href="create.php" class="btn">+ Add New Item</a>
-        </div>
+<div class="content-box">
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Category</th>
+                    <th>Total</th>
+                    <th>Available</th>
+                    <th>Borrowed</th>
+                    <th>Damaged</th>
+                    <th>Lost</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if (empty($items)): ?>
+                    <tr>
+                        <td colspan="10" class="empty">No items found. Add one!</td>
+                    </tr>
+                <?php else: ?>
+                    <?php foreach ($items as $item): ?>
+                        <tr>
+                            <td><?= $item['id'] ?></td>
+                            <td><?= htmlspecialchars($item['name']) ?></td>
+                            <td><?= htmlspecialchars($item['category_name'] ?? 'None') ?></td>
+                            <td class="quantity"><?= $item['total_stock'] ?></td>
+                            <td class="quantity"><?= $item['available_stock'] ?></td>
+                            <td><?= $item['borrowed_stock'] ?></td>
+                            <td><?= $item['damaged_stock'] ?></td>
+                            <td><?= $item['lost_stock'] ?></td>
+                            <td>
+                                <span class="<?= $item['is_active'] ? 'status-active' : 'status-inactive' ?>">
+                                    <?= $item['is_active'] ? 'Active' : 'Archived' ?>
+                                </span>
+                            </td>
+                            <td>
+                                <div class="row-actions">
+                                    <a href="edit.php?id=<?= $item['id'] ?>" class="edit-btn">Edit</a>
+                                    <form action="toggle_status.php" method="POST">
+                                        <?= csrf_field() ?>
+                                        <input type="hidden" name="id" value="<?= $item['id'] ?>">
+                                        <input type="hidden" name="current_status" value="<?= $item['is_active'] ?>">
+                                        <button type="submit" class="<?= $item['is_active'] ? 'remove-btn' : 'save-btn' ?>">
+                                            <?= $item['is_active'] ? 'Archive' : 'Unarchive' ?>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </tbody>
+        </table>
     </div>
 
-    <table>
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>Category</th>
-                <th>Total Stock</th>
-                <th>Available</th>
-                <th>Borrowed</th>
-                <th>Damaged</th>
-                <th>Lost</th>
-                <th>Status</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php if (empty($items)): ?>
-                <tr>
-                    <td colspan="10" style="text-align: center;">No items found. Add one!</td>
-                </tr>
-            <?php else: ?>
-                <?php foreach ($items as $item): ?>
-                    <tr>
-                        <td><?= $item['id'] ?></td>
-                        <td><?= htmlspecialchars($item['name']) ?></td>
-                        <td><?= htmlspecialchars($item['category_name'] ?? 'None') ?></td>
-                        <td><?= $item['total_stock'] ?></td>
-                        <td><strong><?= $item['available_stock'] ?></strong></td>
-                        <td><?= $item['borrowed_stock'] ?></td>
-                        <td><?= $item['damaged_stock'] ?></td>
-                        <td><?= $item['lost_stock'] ?></td>
-                        <td><?= $item['is_active'] ? 'Active' : 'Archived' ?></td>
-                        <td>
-                            <a href="edit.php?id=<?= $item['id'] ?>" class="btn">Edit</a>
+    <?php render_pagination($page, $perPage, $totalRows, $totalPages); ?>
+</div>
 
-                            <!-- Archive/Unarchive button -->
-                            <form action="toggle_status.php" method="POST" style="display:inline;">
-                                <?= csrf_field() ?>
-                                <input type="hidden" name="id" value="<?= $item['id'] ?>">
-                                <input type="hidden" name="current_status" value="<?= $item['is_active'] ?>">
-                                <button type="submit" class="btn btn-danger">
-                                    <?= $item['is_active'] ? 'Archive' : 'Unarchive' ?>
-                                </button>
-                            </form>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
-            <?php endif; ?>
-        </tbody>
-    </table>
-</body>
-
-</html>
+<?php require __DIR__ . '/../../includes/layout_end.php'; ?>

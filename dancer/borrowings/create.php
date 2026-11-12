@@ -162,129 +162,85 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
+
+$page_title = 'Borrow Items';
+$active_nav = 'borrow';
+
+require __DIR__ . '/../../includes/layout_start.php';
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
+<h1 class="page-title">Borrow an Item</h1>
+<p class="welcome">Add each item you need. All lines are borrowed together under one reference code.</p>
 
-<head>
-    <meta charset="UTF-8">
-    <title>Borrow Item</title>
-    <style>
-        body {
-            font-family: sans-serif;
-            margin: 40px;
-        }
+<?php if ($error): ?>
+    <p class="message error"><?= htmlspecialchars($error) ?></p>
+<?php endif; ?>
+<?php if ($success): ?>
+    <p class="message success"><?= htmlspecialchars($success) ?></p>
+<?php endif; ?>
 
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        label {
-            display: block;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-
-        input[type="text"],
-        input[type="number"],
-        select {
-            padding: 8px;
-            width: 300px;
-        }
-
-        button {
-            padding: 10px 15px;
-            background: #333;
-            color: white;
-            border: none;
-            cursor: pointer;
-            border-radius: 3px;
-        }
-
-        .error {
-            color: red;
-            margin-bottom: 15px;
-        }
-
-        .success {
-            color: green;
-            margin-bottom: 15px;
-            font-weight: bold;
-        }
-    </style>
-</head>
-
-<body>
-    <h1>Borrow an Item</h1>
-    <a href="/SBDTInventory/dancer/dashboard.php">&larr; Back to Dashboard</a>
-    <br><br>
-
-    <?php if ($error): ?>
-        <p class="error"><?= htmlspecialchars($error) ?></p>
-    <?php endif; ?>
-    <?php if ($success): ?>
-        <p class="success"><?= htmlspecialchars($success) ?></p>
-    <?php endif; ?>
-
+<div class="content-box">
     <form method="POST" id="borrow-form">
         <?= csrf_field() ?>
 
         <div id="item-rows">
-            <div class="item-row" style="margin-bottom: 10px;">
-                <label style="display:block; font-weight:bold;">Item &amp; Quantity</label>
-                <select name="item_id[]" required style="width: 300px; padding: 8px;">
-                    <option value="">-- Choose an item --</option>
-                    <?php foreach ($items as $item): ?>
-                        <option value="<?= $item['id'] ?>">
-                            <?= htmlspecialchars($item['name']) ?> (<?= $item['available_stock'] ?> available)
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-                <input type="number" name="quantity[]" min="1" placeholder="Qty" required style="width: 80px; padding: 8px;">
-                <button type="button" class="remove-row" style="padding: 8px 10px;">Remove</button>
+            <div class="item-row">
+                <span class="item-line">
+                    <select name="item_id[]" required>
+                        <option value="">-- Choose an item --</option>
+                        <?php foreach ($items as $item): ?>
+                            <option value="<?= $item['id'] ?>">
+                                <?= htmlspecialchars($item['name']) ?> (<?= $item['available_stock'] ?> available)
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                    <input type="number" name="quantity[]" min="1" placeholder="Qty" required>
+                    <button type="button" class="remove-btn remove-row">Remove</button>
+                </span>
             </div>
         </div>
 
-        <button type="button" id="add-row" style="padding: 8px 12px; margin-bottom: 15px;">+ Add another item</button>
+        <button type="button" id="add-row" class="add-btn" style="margin-top: 10px;">+ Add another item</button>
 
-        <div class="form-group">
-            <label>Reason for Borrowing</label>
-            <input type="text" name="reason" required placeholder="e.g., Practice for Recital">
+        <div class="form-group" style="margin-top: 20px;">
+            <label class="form-label" for="reason">Reason for Borrowing</label>
+            <input type="text" id="reason" name="reason" required placeholder="e.g., Practice for Recital">
         </div>
 
-        <button type="submit">Submit Borrow Request</button>
+        <div class="form-group-spaced">
+            <button type="submit" class="borrow-btn">Submit Borrow Request</button>
+        </div>
     </form>
+</div>
 
-    <script>
-        (function () {
-            var container = document.getElementById('item-rows');
-            var addBtn = document.getElementById('add-row');
+<script>
+    (function () {
+        var container = document.getElementById('item-rows');
+        var addBtn = document.getElementById('add-row');
 
-            function wireRemove(row) {
-                row.querySelector('.remove-row').addEventListener('click', function () {
-                    // Keep at least one row on the page.
-                    if (container.children.length > 1) {
-                        row.remove();
-                    }
-                });
-            }
-
-            addBtn.addEventListener('click', function () {
-                var first = container.querySelector('.item-row');
-                var clone = first.cloneNode(true);
-
-                // Reset the cloned row's values.
-                clone.querySelector('select').value = '';
-                clone.querySelector('input').value = '';
-
-                container.appendChild(clone);
-                wireRemove(clone);
+        function wireRemove(row) {
+            row.querySelector('.remove-row').addEventListener('click', function () {
+                // Keep at least one row on the page.
+                if (container.children.length > 1) {
+                    row.remove();
+                }
             });
+        }
 
-            wireRemove(container.querySelector('.item-row'));
-        })();
-    </script>
-</body>
+        addBtn.addEventListener('click', function () {
+            var first = container.querySelector('.item-row');
+            var clone = first.cloneNode(true);
 
-</html>
+            // Reset the cloned row's values.
+            clone.querySelector('select').value = '';
+            clone.querySelector('input').value = '';
+
+            container.appendChild(clone);
+            wireRemove(clone);
+        });
+
+        wireRemove(container.querySelector('.item-row'));
+    })();
+</script>
+
+<?php require __DIR__ . '/../../includes/layout_end.php'; ?>

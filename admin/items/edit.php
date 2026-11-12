@@ -111,72 +111,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
+
+$page_title = 'Edit Item';
+$active_nav = 'items';
+
+require __DIR__ . '/../../includes/layout_start.php';
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <title>Edit Item</title>
-    <style>
-        body {
-            font-family: sans-serif;
-            margin: 40px;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        label {
-            display: block;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-
-        input[type="text"],
-        input[type="number"],
-        select {
-            padding: 8px;
-            width: 300px;
-        }
-
-        button {
-            padding: 10px 15px;
-            background: #333;
-            color: white;
-            border: none;
-            cursor: pointer;
-            border-radius: 3px;
-        }
-
-        .error {
-            color: red;
-            margin-bottom: 15px;
-        }
-    </style>
-</head>
-
-<body>
-    <h1>Edit Item</h1>
-    <a href="index.php">&larr; Back to Items List</a>
-    <br><br>
+<div class="edit-panel">
+    <h3 class="section-title">Edit Item</h3>
 
     <?php if ($error): ?>
-        <p class="error"><?= htmlspecialchars($error) ?></p>
+        <p class="message error"><?= htmlspecialchars($error) ?></p>
     <?php endif; ?>
 
     <form method="POST">
         <?= csrf_field() ?>
         <div class="form-group">
-            <label>Item Name</label>
-            <input type="text" name="name" value="<?= htmlspecialchars($item['name']) ?>" required>
+            <label class="form-label" for="name">Item Name</label>
+            <input type="text" id="name" name="name" value="<?= htmlspecialchars($item['name']) ?>" required>
         </div>
 
         <div class="form-group">
-            <label>Category</label>
-            <select name="category_id" required>
+            <label class="form-label" for="category_id">Category</label>
+            <select id="category_id" name="category_id" required>
                 <?php foreach ($categories as $cat): ?>
                     <option value="<?= $cat['id'] ?>" <?= $cat['id'] == $item['category_id'] ? 'selected' : '' ?>>
                         <?= htmlspecialchars($cat['name']) ?>
@@ -186,12 +144,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
 
         <div class="form-group">
-            <label>Total Stock (Changing this will adjust available stock)</label>
-            <input type="number" name="total_stock" min="0" value="<?= $item['total_stock'] ?>" required>
+            <label class="form-label" for="total_stock">Total Stock</label>
+            <input type="number" id="total_stock" name="total_stock" min="0" value="<?= $item['total_stock'] ?>" required>
+            <p class="form-note">Changing this adjusts available stock. It cannot go below borrowed + damaged + lost.</p>
         </div>
 
-        <button type="submit">Update Item</button>
+        <div class="form-group-spaced">
+            <button type="submit" class="save-btn">Update Item</button>
+            <a href="index.php" class="cancel-btn">Cancel</a>
+        </div>
     </form>
-</body>
+</div>
 
-</html>
+<?php require __DIR__ . '/../../includes/layout_end.php'; ?>

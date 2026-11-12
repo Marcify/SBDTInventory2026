@@ -159,117 +159,88 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
+
+$page_title = 'Borrowing ' . $borrowing['reference_code'];
+$active_nav = 'borrowings';
+
+require __DIR__ . '/../../includes/layout_start.php';
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
+<div class="toolbar">
+    <h1 class="page-title">Borrowing: <?= htmlspecialchars($borrowing['reference_code']) ?></h1>
+    <a href="index.php" class="cancel-btn">&larr; Back to Active Borrowings</a>
+</div>
 
-<head>
-    <meta charset="UTF-8">
-    <title>View Borrowing</title>
-    <style>
-        body {
-            font-family: sans-serif;
-            margin: 40px;
-        }
+<div class="summary-container">
+    <div class="summary-card">
+        <div class="card-heading">
+            <h6>Dancer</h6>
+        </div>
+        <h6 style="font-size: 18px;"><?= htmlspecialchars($borrowing['user_name']) ?></h6>
+    </div>
+    <div class="summary-card">
+        <div class="card-heading">
+            <h6>Reason</h6>
+        </div>
+        <h6 style="font-size: 14px; font-weight: 400;"><?= htmlspecialchars($borrowing['reason']) ?></h6>
+    </div>
+    <div class="summary-card">
+        <div class="card-heading">
+            <h6>Status</h6>
+        </div>
+        <span class="badge <?= $borrowing['status'] === 'returned' ? 'badge-returned' : ($borrowing['status'] === 'partial' ? 'badge-partial' : 'badge-borrowed') ?>">
+            <?= ucfirst($borrowing['status']) ?>
+        </span>
+    </div>
+</div>
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-            margin-bottom: 20px;
-        }
+<?php if ($error): ?>
+    <p class="message error"><?= htmlspecialchars($error) ?></p>
+<?php endif; ?>
 
-        th,
-        td {
-            border: 1px solid #ccc;
-            padding: 8px;
-            text-align: left;
-        }
-
-        th {
-            background: #f4f4f4;
-        }
-
-        .btn {
-            padding: 8px 12px;
-            background: #333;
-            color: white;
-            border: none;
-            cursor: pointer;
-            border-radius: 3px;
-        }
-
-        .form-inline {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        select,
-        input[type="number"] {
-            padding: 5px;
-        }
-
-        .error {
-            color: red;
-            font-weight: bold;
-        }
-    </style>
-</head>
-
-<body>
-    <h1>Borrowing: <?= htmlspecialchars($borrowing['reference_code']) ?></h1>
-    <a href="index.php">&larr; Back to Active Borrowings</a>
-
-    <p><strong>Dancer:</strong> <?= htmlspecialchars($borrowing['user_name']) ?></p>
-    <p><strong>Reason:</strong> <?= htmlspecialchars($borrowing['reason']) ?></p>
-    <p><strong>Status:</strong> <?= ucfirst($borrowing['status']) ?></p>
-
-    <?php if ($error): ?>
-        <p class="error"><?= htmlspecialchars($error) ?></p>
-    <?php endif; ?>
-
-    <table>
-        <thead>
-            <tr>
-                <th>Item</th>
-                <th>Qty Borrowed</th>
-                <th>Qty Returned</th>
-                <th>Still Out</th>
-                <th>Process Return</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php foreach ($details as $d):
-                $remaining = $d['quantity_borrowed'] - $d['quantity_returned'];
-            ?>
+<div class="content-box">
+    <div class="table-wrapper">
+        <table>
+            <thead>
                 <tr>
-                    <td><?= htmlspecialchars($d['item_name']) ?></td>
-                    <td><?= $d['quantity_borrowed'] ?></td>
-                    <td><?= $d['quantity_returned'] ?></td>
-                    <td><strong><?= $remaining ?></strong></td>
-                    <td>
-                        <?php if ($remaining > 0): ?>
-                            <form method="POST" class="form-inline">
-                                <?= csrf_field() ?>
-                                <input type="hidden" name="detail_id" value="<?= $d['id'] ?>">
-                                <input type="number" name="quantity" min="1" max="<?= $remaining ?>" value="<?= $remaining ?>" required style="width: 70px;">
-                                <select name="condition" required>
-                                    <option value="good">Good</option>
-                                    <option value="damaged">Damaged</option>
-                                    <option value="lost">Lost</option>
-                                </select>
-                                <button type="submit" class="btn">Return</button>
-                            </form>
-                        <?php else: ?>
-                            <span style="color: green; font-weight: bold;">Fully Returned</span>
-                        <?php endif; ?>
-                    </td>
+                    <th>Item</th>
+                    <th>Qty Borrowed</th>
+                    <th>Qty Returned</th>
+                    <th>Still Out</th>
+                    <th>Process Return</th>
                 </tr>
-            <?php endforeach; ?>
-        </tbody>
-    </table>
-</body>
+            </thead>
+            <tbody>
+                <?php foreach ($details as $d):
+                    $remaining = $d['quantity_borrowed'] - $d['quantity_returned'];
+                ?>
+                    <tr>
+                        <td><?= htmlspecialchars($d['item_name']) ?></td>
+                        <td class="quantity"><?= $d['quantity_borrowed'] ?></td>
+                        <td><?= $d['quantity_returned'] ?></td>
+                        <td class="quantity"><?= $remaining ?></td>
+                        <td>
+                            <?php if ($remaining > 0): ?>
+                                <form method="POST" class="inline-form">
+                                    <?= csrf_field() ?>
+                                    <input type="hidden" name="detail_id" value="<?= $d['id'] ?>">
+                                    <input type="number" name="quantity" min="1" max="<?= $remaining ?>" value="<?= $remaining ?>" required style="width: 70px;">
+                                    <select name="condition" required>
+                                        <option value="good">Good</option>
+                                        <option value="damaged">Damaged</option>
+                                        <option value="lost">Lost</option>
+                                    </select>
+                                    <button type="submit" class="save-btn">Return</button>
+                                </form>
+                            <?php else: ?>
+                                <span class="badge badge-returned">Fully Returned</span>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
 
-</html>
+<?php require __DIR__ . '/../../includes/layout_end.php'; ?>

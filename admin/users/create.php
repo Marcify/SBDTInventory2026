@@ -29,89 +29,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
+
+$page_title = 'Add User';
+$active_nav = 'users';
+
+require __DIR__ . '/../../includes/layout_start.php';
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <title>Add User</title>
-    <style>
-        body {
-            font-family: sans-serif;
-            margin: 40px;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        label {
-            display: block;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-
-        input[type="text"],
-        input[type="password"],
-        select {
-            padding: 8px;
-            width: 300px;
-        }
-
-        button {
-            padding: 10px 15px;
-            background: #333;
-            color: white;
-            border: none;
-            cursor: pointer;
-            border-radius: 3px;
-        }
-
-        .error {
-            color: red;
-            margin-bottom: 15px;
-        }
-    </style>
-</head>
-
-<body>
-    <h1>Add New User</h1>
-    <a href="index.php">&larr; Back to Users</a>
-    <br><br>
+<div class="edit-panel">
+    <h3 class="section-title">Add New User</h3>
 
     <?php if ($error): ?>
-        <p class="error"><?= htmlspecialchars($error) ?></p>
+        <p class="message error"><?= htmlspecialchars($error) ?></p>
     <?php endif; ?>
 
     <form method="POST">
         <?= csrf_field() ?>
         <div class="form-group">
-            <label>Full Name</label>
-            <input type="text" name="name" required>
+            <label class="form-label" for="name">Full Name</label>
+            <input type="text" id="name" name="name" required>
         </div>
 
         <div class="form-group">
-            <label>Username</label>
-            <input type="text" name="username" required>
+            <label class="form-label" for="username">Username</label>
+            <input type="text" id="username" name="username" required>
         </div>
 
         <div class="form-group">
-            <label>Password</label>
-            <input type="password" name="password" required>
+            <label class="form-label" for="password">Password</label>
+            <input type="password" id="password" name="password" required>
         </div>
 
         <div class="form-group">
-            <label>Role</label>
-            <select name="role" required>
+            <label class="form-label" for="role">Role</label>
+            <select id="role" name="role" required>
                 <option value="dancer">Dancer</option>
                 <option value="admin">Admin</option>
             </select>
         </div>
 
-        <button type="submit">Create User</button>
+        <div class="form-group-spaced">
+            <button type="submit" class="save-btn">Create User</button>
+            <a href="index.php" class="cancel-btn">Cancel</a>
+        </div>
     </form>
-</body>
+</div>
 
-</html>
+<?php require __DIR__ . '/../../includes/layout_end.php'; ?>

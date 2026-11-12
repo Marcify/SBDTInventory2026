@@ -1,101 +1,71 @@
 <?php
 require_once __DIR__ . '/../../includes/auth.php';
 require_admin();
+require_once __DIR__ . '/../../includes/pagination.php';
 
-// Fetch all stock movements, joining with items and users to get names
+$totalRows = (int)$pdo->query("SELECT COUNT(*) FROM stock_movements")->fetchColumn();
+[$page, $perPage, $offset, $totalPages] = pagination_init($totalRows, 50);
+
+// Fetch all stock movements, joining with items and users to get names (paginated)
 $sql = "SELECT stock_movements.*, items.name AS item_name, users.username, users.name AS user_name 
         FROM stock_movements 
         JOIN items ON stock_movements.item_id = items.id 
         JOIN users ON stock_movements.user_id = users.id 
-        ORDER BY stock_movements.created_at DESC";
-$stmt = $pdo->query($sql);
+        ORDER BY stock_movements.created_at DESC
+        LIMIT ? OFFSET ?";
+$stmt = $pdo->prepare($sql);
+$stmt->bindValue(1, $perPage, PDO::PARAM_INT);
+$stmt->bindValue(2, $offset, PDO::PARAM_INT);
+$stmt->execute();
 $movements = $stmt->fetchAll();
+
+$page_title = 'Stock History';
+$active_nav = 'stock';
+
+require __DIR__ . '/../../includes/layout_start.php';
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
+<h1 class="page-title">Stock Movements History</h1>
 
-<head>
-    <meta charset="UTF-8">
-    <title>Stock History</title>
-    <style>
-        body {
-            font-family: sans-serif;
-            margin: 40px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        th,
-        td {
-            border: 1px solid #ccc;
-            padding: 8px;
-            text-align: left;
-        }
-
-        th {
-            background: #f4f4f4;
-        }
-
-        .type-IN {
-            color: green;
-            font-weight: bold;
-        }
-
-        .type-OUT {
-            color: red;
-            font-weight: bold;
-        }
-
-        .type-ADJUSTMENT {
-            color: orange;
-            font-weight: bold;
-        }
-    </style>
-</head>
-
-<body>
-    <h1>Stock Movements History</h1>
-    <a href="/SBDTInventory/admin/dashboard.php">Back to Dashboard</a>
-
-    <table>
-        <thead>
-            <tr>
-                <th>Date & Time</th>
-                <th>Item</th>
-                <th>Type</th>
-                <th>Quantity</th>
-                <th>Performed By</th>
-                <th>Reason</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php if (empty($movements)): ?>
+<div class="content-box">
+    <div class="table-wrapper">
+        <table>
+            <thead>
                 <tr>
-                    <td colspan="6" style="text-align: center;">No stock movements recorded yet.</td>
+                    <th>Date &amp; Time</th>
+                    <th>Item</th>
+                    <th>Type</th>
+                    <th>Quantity</th>
+                    <th>Performed By</th>
+                    <th>Reason</th>
                 </tr>
-            <?php else: ?>
-                <?php foreach ($movements as $m): ?>
+            </thead>
+            <tbody>
+                <?php if (empty($movements)): ?>
                     <tr>
-                        <td><?= date('M d, Y h:i A', strtotime($m['created_at'])) ?></td>
-                        <td><?= htmlspecialchars($m['item_name']) ?></td>
-                        <td>
-                            <span class="type-<?= $m['type'] ?>">
-                                <?= $m['type'] ?>
-                            </span>
-                        </td>
-                        <td><?= $m['quantity'] ?></td>
-                        <td><?= htmlspecialchars($m['user_name']) ?></td>
-                        <td><?= htmlspecialchars($m['reason']) ?></td>
+                        <td colspan="6" class="empty">No stock movements recorded yet.</td>
                     </tr>
-                <?php endforeach; ?>
-            <?php endif; ?>
-        </tbody>
-    </table>
-</body>
+                <?php else: ?>
+                    <?php foreach ($movements as $m): ?>
+                        <tr>
+                            <td><?= date('M d, Y h:i A', strtotime($m['created_at'])) ?></td>
+                            <td><?= htmlspecialchars($m['item_name']) ?></td>
+                            <td>
+                                <span class="badge <?= $m['type'] === 'IN' ? 'badge-available' : ($m['type'] === 'OUT' ? 'badge-unavailable' : 'badge-borrowed') ?>">
+                                    <?= $m['type'] ?>
+                                </span>
+                            </td>
+                            <td class="quantity"><?= $m['quantity'] ?></td>
+                            <td><?= htmlspecialchars($m['user_name']) ?></td>
+                            <td><?= htmlspecialchars($m['reason']) ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </tbody>
+        </table>
+    </div>
 
-</html>
+    <?php render_pagination($page, $perPage, $totalRows, $totalPages); ?>
+</div>
+
+<?php require __DIR__ . '/../../includes/layout_end.php'; ?>
