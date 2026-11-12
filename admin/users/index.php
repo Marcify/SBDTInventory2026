@@ -4,7 +4,7 @@ require_admin();
 require_once __DIR__ . '/../../includes/pagination.php';
 
 $totalRows = (int)$pdo->query("SELECT COUNT(*) FROM users")->fetchColumn();
-[$page, $perPage, $offset, $totalPages] = pagination_init($totalRows, 20);
+[$page, $perPage, $offset, $totalPages] = pagination_init($totalRows, 10);
 
 $stmt = $pdo->prepare("SELECT * FROM users ORDER BY role DESC, username ASC LIMIT ? OFFSET ?");
 $stmt->bindValue(1, $perPage, PDO::PARAM_INT);

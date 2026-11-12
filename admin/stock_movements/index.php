@@ -4,7 +4,7 @@ require_admin();
 require_once __DIR__ . '/../../includes/pagination.php';
 
 $totalRows = (int)$pdo->query("SELECT COUNT(*) FROM stock_movements")->fetchColumn();
-[$page, $perPage, $offset, $totalPages] = pagination_init($totalRows, 50);
+[$page, $perPage, $offset, $totalPages] = pagination_init($totalRows, 10);
 
 // Fetch all stock movements, joining with items and users to get names (paginated)
 $sql = "SELECT stock_movements.*, items.name AS item_name, users.username, users.name AS user_name 

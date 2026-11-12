@@ -34,7 +34,7 @@ $countStmt = $pdo->prepare(
 $countStmt->execute($params);
 $totalRows = (int)$countStmt->fetchColumn();
 
-[$page, $perPage, $offset, $totalPages] = pagination_init($totalRows, 20);
+[$page, $perPage, $offset, $totalPages] = pagination_init($totalRows, 10);
 
 // Active first (newest first), returned at the bottom.
 $sql = "SELECT borrowings.*, users.name AS user_name

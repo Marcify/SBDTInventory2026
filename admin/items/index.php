@@ -22,7 +22,7 @@ $countStmt = $pdo->prepare(
 $countStmt->execute($searchParams);
 $totalRows = (int)$countStmt->fetchColumn();
 
-[$page, $perPage, $offset, $totalPages] = pagination_init($totalRows, 20);
+[$page, $perPage, $offset, $totalPages] = pagination_init($totalRows, 10);
 
 // Fetch all items with their category names (paginated, filtered)
 $sql = "SELECT items.*, categories.name AS category_name 

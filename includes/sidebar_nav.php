@@ -2,6 +2,7 @@
 // Presentation only. Expects $user and $active_nav from the layout.
 // Link targets match the previous sidebar exactly.
 $isAdminNav = (($user['role'] ?? '') === 'admin');
+$active_nav = $active_nav ?? '';
 ?>
 <p class="sidebar-label"><?= $isAdminNav ? 'Admin' : 'Dancer' ?></p>
 <nav class="nav flex-column sidebar-nav pb-4">

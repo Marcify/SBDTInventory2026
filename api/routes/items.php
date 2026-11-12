@@ -7,7 +7,7 @@ declare(strict_types=1);
 route('GET', '/items', function () {
     $user = api_require_login();
 
-    $limit = filter_var($_GET['limit'] ?? 50, FILTER_VALIDATE_INT);
+    $limit = filter_var($_GET['limit'] ?? 10, FILTER_VALIDATE_INT);
     $offset = filter_var($_GET['offset'] ?? 0, FILTER_VALIDATE_INT);
 
     if (
