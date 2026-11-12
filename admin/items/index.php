@@ -105,6 +105,9 @@ require __DIR__ . '/../../includes/layout_start.php';
                             <td>
                                 <div class="row-actions">
                                     <a href="edit.php?id=<?= $item['id'] ?>" class="edit-btn">Edit</a>
+                                    <?php if ((int)$item['damaged_stock'] > 0): ?>
+                                        <a href="repair.php?id=<?= $item['id'] ?>" class="edit-btn">Repair (<?= $item['damaged_stock'] ?>)</a>
+                                    <?php endif; ?>
                                     <form action="toggle_status.php" method="POST">
                                         <?= csrf_field() ?>
                                         <input type="hidden" name="id" value="<?= $item['id'] ?>">
@@ -115,6 +118,7 @@ require __DIR__ . '/../../includes/layout_start.php';
                                     </form>
                                 </div>
                             </td>
+
                         </tr>
                     <?php endforeach; ?>
                 <?php endif; ?>

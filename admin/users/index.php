@@ -52,14 +52,17 @@ require __DIR__ . '/../../includes/layout_start.php';
                         </td>
                         <td>
                             <?php if ($u['id'] != $_SESSION['user_id']): ?>
-                                <form action="toggle_status.php" method="POST">
-                                    <?= csrf_field() ?>
-                                    <input type="hidden" name="id" value="<?= $u['id'] ?>">
-                                    <input type="hidden" name="current_status" value="<?= $u['is_active'] ?>">
-                                    <button type="submit" class="<?= $u['is_active'] ? 'remove-btn' : 'save-btn' ?>">
-                                        <?= $u['is_active'] ? 'Deactivate' : 'Activate' ?>
-                                    </button>
-                                </form>
+                                <div class="row-actions">
+                                    <a href="edit.php?id=<?= $u['id'] ?>" class="edit-btn">Edit</a>
+                                    <form action="toggle_status.php" method="POST">
+                                        <?= csrf_field() ?>
+                                        <input type="hidden" name="id" value="<?= $u['id'] ?>">
+                                        <input type="hidden" name="current_status" value="<?= $u['is_active'] ?>">
+                                        <button type="submit" class="<?= $u['is_active'] ? 'remove-btn' : 'save-btn' ?>">
+                                            <?= $u['is_active'] ? 'Deactivate' : 'Activate' ?>
+                                        </button>
+                                    </form>
+                                </div>
                             <?php else: ?>
                                 <em>(You)</em>
                             <?php endif; ?>

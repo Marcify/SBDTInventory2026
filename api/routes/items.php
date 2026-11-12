@@ -417,9 +417,10 @@ route('POST', '/items/{id}/stock-adjustments', function ($id) {
         $errors['id'] = 'Item ID must be a positive integer';
     }
 
-    if (!in_array($action, ['add', 'remove'], true)) {
-        $errors['action'] = 'Action must be add or remove';
+    if (!in_array($action, ['add', 'remove', 'repair'], true)) {
+        $errors['action'] = 'Action must be add, remove, or repair';
     }
+
 
     if (
         !is_int($quantity) ||
@@ -511,6 +512,21 @@ route('POST', '/items/{id}/stock-adjustments', function ($id) {
             $newTotal = $balances['total_stock'] + $quantity;
             $newAvailable = $balances['available_stock'] + $quantity;
             $movementType = 'IN';
+        } elseif ($action === 'repair') {
+            // A damaged unit has been fixed and can be borrowed again.
+            // total_stock is unchanged; one unit moves damaged -> available.
+            if ($quantity > $balances['damaged_stock']) {
+                $pdo->rollBack();
+
+                json_error('Cannot repair more than the damaged stock', 409, [
+                    'damaged_stock' => $balances['damaged_stock'],
+                ]);
+            }
+
+            $newTotal = $balances['total_stock'];
+            $newAvailable = $balances['available_stock'] + $quantity;
+            $newDamaged = $balances['damaged_stock'] - $quantity;
+            $movementType = 'IN';
         } else {
             if ($quantity > $balances['available_stock']) {
                 $pdo->rollBack();
@@ -525,13 +541,25 @@ route('POST', '/items/{id}/stock-adjustments', function ($id) {
             $movementType = 'OUT';
         }
 
-        $stmt = $pdo->prepare(
-            'UPDATE items
-             SET total_stock = ?, available_stock = ?
-             WHERE id = ?'
-        );
 
-        $stmt->execute([$newTotal, $newAvailable, $itemId]);
+        if ($action === 'repair') {
+            $stmt = $pdo->prepare(
+                'UPDATE items
+                 SET total_stock = ?, available_stock = ?, damaged_stock = ?
+                 WHERE id = ?'
+            );
+
+            $stmt->execute([$newTotal, $newAvailable, $newDamaged, $itemId]);
+        } else {
+            $stmt = $pdo->prepare(
+                'UPDATE items
+                 SET total_stock = ?, available_stock = ?
+                 WHERE id = ?'
+            );
+
+            $stmt->execute([$newTotal, $newAvailable, $itemId]);
+        }
+
 
         $stmt = $pdo->prepare(
             'INSERT INTO stock_movements

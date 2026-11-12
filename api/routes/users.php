@@ -124,7 +124,7 @@ route('POST', '/users', function () {
     ], 201);
 });
 
-// Activate or deactivate a user.
+// Update a user: name, username, role, password, and/or is_active.
 route('PATCH', '/users/{id}', function ($id) {
     $currentUser = api_require_admin();
     api_require_csrf();
@@ -145,7 +145,7 @@ route('PATCH', '/users/{id}', function ($id) {
 
     $unknownFields = array_diff(
         array_keys($data),
-        ['is_active']
+        ['name', 'username', 'password', 'role', 'is_active']
     );
 
     if ($unknownFields) {
@@ -154,41 +154,138 @@ route('PATCH', '/users/{id}', function ($id) {
         ]);
     }
 
-    if (!array_key_exists('is_active', $data)) {
+    if (!$data) {
         json_validation([
-            'is_active' => 'Provide is_active to update',
+            'fields' => 'Provide at least one field to update',
         ]);
     }
 
-    if (!is_bool($data['is_active'])) {
-        json_validation([
-            'is_active' => 'Active status must be true or false',
-        ]);
+    $errors = [];
+    $sets = [];
+    $params = [];
+
+    // --- name (optional) ---
+    if (array_key_exists('name', $data)) {
+        $name = $data['name'];
+        if (!is_string($name) || trim($name) === '') {
+            $errors['name'] = 'Name is required and must be a string';
+        } else {
+            $name = trim($name);
+            $length = preg_match_all('/./us', $name);
+            if ($length === false || $length > 120) {
+                $errors['name'] = 'Name must not exceed 120 characters';
+            }
+        }
+        $sets['name'] = $name;
     }
 
-    $isActive = $data['is_active'];
+    // --- username (optional) ---
+    if (array_key_exists('username', $data)) {
+        $username = $data['username'];
+        if (!is_string($username) || trim($username) === '') {
+            $errors['username'] = 'Username is required and must be a string';
+        } else {
+            $username = trim($username);
+            if (!preg_match('/^[a-zA-Z0-9_.-]{3,50}$/', $username)) {
+                $errors['username'] =
+                    'Username must be 3-50 characters using letters, numbers, dots, dashes, or underscores';
+            }
+        }
+        $sets['username'] = $username;
+    }
 
-    // Prevent an admin from locking themselves out.
-    if ($userId === $currentUser['id'] && $isActive === false) {
-        json_error('You cannot deactivate your own account', 409);
+    // --- password (optional) ---
+    if (array_key_exists('password', $data)) {
+        $password = $data['password'];
+        if (!is_string($password) || strlen($password) < 8) {
+            $errors['password'] = 'Password must be a string of at least 8 characters';
+        } elseif (strlen($password) > 72) {
+            $errors['password'] = 'Password must not exceed 72 characters';
+        }
+        $sets['__password'] = $password;
+    }
+
+    // --- role (optional) ---
+    if (array_key_exists('role', $data)) {
+        $role = $data['role'];
+        if (
+            !is_string($role) ||
+            !in_array($role, ['admin', 'dancer'], true)
+        ) {
+            $errors['role'] = 'Role must be admin or dancer';
+        } elseif ($userId === $currentUser['id'] && $role !== 'admin') {
+            // Prevent an admin from demoting themselves out of the system.
+            json_error('You cannot change your own role', 409);
+        }
+        $sets['role'] = $role;
+    }
+
+    // --- is_active (optional, self-lockout guard) ---
+    if (array_key_exists('is_active', $data)) {
+        if (!is_bool($data['is_active'])) {
+            $errors['is_active'] = 'Active status must be true or false';
+        } elseif ($userId === $currentUser['id'] && $data['is_active'] === false) {
+            json_error('You cannot deactivate your own account', 409);
+        }
+        $sets['is_active'] = $data['is_active'] ? 1 : 0;
+    }
+
+    if ($errors) {
+        json_validation($errors);
     }
 
     global $pdo;
 
-    $stmt = $pdo->prepare(
-        'UPDATE users SET is_active = ? WHERE id = ?'
-    );
+    try {
+        $pdo->beginTransaction();
 
-    $stmt->execute([$isActive ? 1 : 0, $userId]);
-
-    if ($stmt->rowCount() === 0) {
-        // Either the user does not exist, or the status is unchanged.
-        $stmt = $pdo->prepare('SELECT id FROM users WHERE id = ?');
+        // Lock the row so concurrent edits cannot collide.
+        $stmt = $pdo->prepare(
+            'SELECT id FROM users WHERE id = ? FOR UPDATE'
+        );
         $stmt->execute([$userId]);
 
         if (!$stmt->fetch()) {
+            $pdo->rollBack();
             json_error('User not found', 404);
         }
+
+        $sqlParts = [];
+        foreach ($sets as $field => $value) {
+            if ($field === '__password') {
+                $sqlParts[] = 'password = ?';
+                $params[] = password_hash($value, PASSWORD_DEFAULT);
+            } else {
+                $sqlParts[] = $field . ' = ?';
+                $params[] = $value;
+            }
+        }
+
+        // Duplicate username check happens inside the transaction.
+        $params[] = $userId;
+
+        $stmt = $pdo->prepare(
+            'UPDATE users SET ' . implode(', ', $sqlParts) . ' WHERE id = ?'
+        );
+
+        try {
+            $stmt->execute($params);
+        } catch (PDOException $e) {
+            if ((int)($e->errorInfo[1] ?? 0) === 1062) {
+                $pdo->rollBack();
+                json_error('That username is already taken', 409);
+            }
+
+            throw $e;
+        }
+
+        $pdo->commit();
+    } catch (Throwable $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+
+        throw $e;
     }
 
     $stmt = $pdo->prepare(
@@ -198,10 +295,14 @@ route('PATCH', '/users/{id}', function ($id) {
     );
 
     $stmt->execute([$userId]);
+
     $user = $stmt->fetch();
 
-    $user['id'] = (int)$user['id'];
-    $user['is_active'] = (bool)$user['is_active'];
+    if ($user) {
+        $user['id'] = (int)$user['id'];
+        $user['is_active'] = (bool)$user['is_active'];
+    }
 
     json_success(['user' => $user]);
 });
+
