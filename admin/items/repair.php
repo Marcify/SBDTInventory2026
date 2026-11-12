@@ -106,44 +106,46 @@ $active_nav = 'items';
 require __DIR__ . '/../../includes/layout_start.php';
 ?>
 
-<div class="toolbar">
-    <h1 class="page-title">Repair Damaged Stock</h1>
-    <a href="index.php" class="cancel-btn">&larr; Back to Items</a>
+<div class="toolbar mb-4">
+    <h1 class="page-title h3 mb-0">Repair Damaged Stock</h1>
+    <a href="index.php" class="btn btn-outline-maroon cancel-btn"><i class="bi bi-arrow-left" aria-hidden="true"></i> Back to Items</a>
 </div>
 
-<div class="edit-panel">
-    <p class="welcome">
-        <strong><?= htmlspecialchars($item['name']) ?></strong> —
-        <?= (int)$item['damaged_stock'] ?> damaged unit(s) can be repaired.
-        Repaired units return to available stock. Total stock is unchanged.
-    </p>
+<div class="card edit-panel border-0 shadow-sm">
+    <div class="card-body p-4">
+        <p class="welcome">
+            <strong><?= htmlspecialchars($item['name']) ?></strong> —
+            <?= (int)$item['damaged_stock'] ?> damaged unit(s) can be repaired.
+            Repaired units return to available stock. Total stock is unchanged.
+        </p>
 
-    <?php if ($error): ?>
-        <p class="message error"><?= htmlspecialchars($error) ?></p>
-    <?php endif; ?>
+        <?php if ($error): ?>
+            <div class="alert alert-danger message error" role="alert"><?= htmlspecialchars($error) ?></div>
+        <?php endif; ?>
 
-    <?php if ((int)$item['damaged_stock'] === 0): ?>
-        <p class="message">This item has no damaged stock to repair.</p>
-        <a href="index.php" class="cancel-btn">Back to Items</a>
-    <?php else: ?>
-        <form method="POST">
-            <?= csrf_field() ?>
-            <div class="form-group">
-                <label class="form-label" for="quantity">Quantity to repair</label>
-                <input type="number" id="quantity" name="quantity" min="1"
-                       max="<?= (int)$item['damaged_stock'] ?>"
-                       value="<?= (int)$item['damaged_stock'] ?>" required>
-            </div>
-            <div class="form-group">
-                <label class="form-label" for="reason">Reason (e.g. "Costume seam repaired")</label>
-                <input type="text" id="reason" name="reason" maxlength="255" required>
-            </div>
-            <div class="form-group">
-                <button type="submit" class="save-btn">Mark as Repaired</button>
-                <a href="index.php" class="cancel-btn">Cancel</a>
-            </div>
-        </form>
-    <?php endif; ?>
+        <?php if ((int)$item['damaged_stock'] === 0): ?>
+            <div class="alert alert-warning message" role="alert">This item has no damaged stock to repair.</div>
+            <a href="index.php" class="btn btn-outline-maroon cancel-btn">Back to Items</a>
+        <?php else: ?>
+            <form method="POST">
+                <?= csrf_field() ?>
+                <div class="mb-3 form-group">
+                    <label class="form-label" for="quantity">Quantity to repair</label>
+                    <input type="number" class="form-control" id="quantity" name="quantity" min="1"
+                           max="<?= (int)$item['damaged_stock'] ?>"
+                           value="<?= (int)$item['damaged_stock'] ?>" required>
+                </div>
+                <div class="mb-3 form-group">
+                    <label class="form-label" for="reason">Reason (e.g. "Costume seam repaired")</label>
+                    <input type="text" class="form-control" id="reason" name="reason" maxlength="255" required>
+                </div>
+                <div class="d-flex flex-wrap gap-2 form-group">
+                    <button type="submit" class="btn btn-maroon save-btn">Mark as Repaired</button>
+                    <a href="index.php" class="btn btn-outline-maroon cancel-btn">Cancel</a>
+                </div>
+            </form>
+        <?php endif; ?>
+    </div>
 </div>
 
 <?php require __DIR__ . '/../../includes/layout_end.php'; ?>

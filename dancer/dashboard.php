@@ -23,34 +23,46 @@ $active_nav = 'dashboard';
 require __DIR__ . '/../includes/layout_start.php';
 ?>
 
-<h1 class="page-title">Dancer Dashboard</h1>
-<p class="welcome">Welcome, <?= htmlspecialchars($user['name'] ?? $user['username']) ?>! Browse what's available, then submit a borrow request.</p>
+<div class="mb-4">
+    <h1 class="page-title h3 mb-1">Dancer Dashboard</h1>
+    <p class="welcome mb-0">Welcome, <?= htmlspecialchars($user['name'] ?? $user['username']) ?>! Browse what's available, then submit a borrow request.</p>
+</div>
 
-<div class="summary-container">
-    <div class="summary-card">
-        <div class="card-heading">
-            <h6>Browse</h6>
+<div class="row g-3 mb-4 summary-container">
+    <div class="col-12 col-md-6">
+        <div class="card summary-card h-100 border-0 shadow-sm">
+            <div class="card-body d-flex flex-column">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <span class="stat-icon"><i class="bi bi-search" aria-hidden="true"></i></span>
+                    <h2 class="h6 mb-0 text-maroon">Browse</h2>
+                </div>
+                <p class="welcome">See all items with available stock.</p>
+                <a href="items/index.php" class="btn btn-outline-maroon edit-btn mt-auto align-self-start">Browse Available Items</a>
+            </div>
         </div>
-        <p class="welcome">See all items with available stock.</p>
-        <a href="items/index.php" class="edit-btn">Browse Available Items</a>
     </div>
-    <div class="summary-card">
-        <div class="card-heading">
-            <h6>Borrow</h6>
+    <div class="col-12 col-md-6">
+        <div class="card summary-card h-100 border-0 shadow-sm">
+            <div class="card-body d-flex flex-column">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <span class="stat-icon"><i class="bi bi-bag-plus" aria-hidden="true"></i></span>
+                    <h2 class="h6 mb-0 text-maroon">Borrow</h2>
+                </div>
+                <p class="welcome">Request one or more items in a single borrowing.</p>
+                <a href="borrowings/create.php" class="btn btn-maroon borrow-btn mt-auto align-self-start">Borrow an Item</a>
+            </div>
         </div>
-        <p class="welcome">Request one or more items in a single borrowing.</p>
-        <a href="borrowings/create.php" class="borrow-btn">Borrow an Item</a>
     </div>
 </div>
 
-<div class="content-box">
-    <div class="section-header">
-        <h3 class="section-title">My Borrowed Items</h3>
-        <a href="borrowings/index.php" class="filter-link">View all &rarr;</a>
+<div class="card content-box border-0 shadow-sm">
+    <div class="card-header section-header bg-white">
+        <h2 class="section-title h5 mb-0">My Borrowed Items</h2>
+        <a href="borrowings/index.php" class="btn btn-sm btn-outline-maroon filter-link">View all <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
     </div>
 
-    <div class="table-wrapper">
-        <table>
+    <div class="table-responsive table-wrapper">
+        <table class="table table-striped table-hover align-middle mb-0">
             <thead>
                 <tr>
                     <th>Reference Code</th>
@@ -78,7 +90,7 @@ require __DIR__ . '/../includes/layout_start.php';
                             </td>
                             <td>
                                 <div class="row-actions">
-                                    <a href="borrowings/view.php?id=<?= $b['id'] ?>" class="edit-btn">View Items</a>
+                                    <a href="borrowings/view.php?id=<?= $b['id'] ?>" class="btn btn-sm btn-outline-maroon edit-btn">View Items</a>
                                 </div>
                             </td>
                         </tr>

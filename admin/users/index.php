@@ -18,14 +18,14 @@ $active_nav = 'users';
 require __DIR__ . '/../../includes/layout_start.php';
 ?>
 
-<div class="toolbar">
-    <h1 class="page-title">Manage Users</h1>
-    <a href="create.php" class="add-btn">+ Add New User</a>
+<div class="toolbar mb-4">
+    <h1 class="page-title h3 mb-0">Manage Users</h1>
+    <a href="create.php" class="btn btn-maroon add-btn"><i class="bi bi-plus-lg" aria-hidden="true"></i> Add New User</a>
 </div>
 
-<div class="content-box">
-    <div class="table-wrapper">
-        <table>
+<div class="card content-box border-0 shadow-sm">
+    <div class="table-responsive table-wrapper">
+        <table class="table table-striped table-hover align-middle mb-0">
             <thead>
                 <tr>
                     <th>Name</th>
@@ -53,12 +53,12 @@ require __DIR__ . '/../../includes/layout_start.php';
                         <td>
                             <?php if ($u['id'] != $_SESSION['user_id']): ?>
                                 <div class="row-actions">
-                                    <a href="edit.php?id=<?= $u['id'] ?>" class="edit-btn">Edit</a>
+                                    <a href="edit.php?id=<?= $u['id'] ?>" class="btn btn-sm btn-outline-maroon edit-btn">Edit</a>
                                     <form action="toggle_status.php" method="POST">
                                         <?= csrf_field() ?>
                                         <input type="hidden" name="id" value="<?= $u['id'] ?>">
                                         <input type="hidden" name="current_status" value="<?= $u['is_active'] ?>">
-                                        <button type="submit" class="<?= $u['is_active'] ? 'remove-btn' : 'save-btn' ?>">
+                                        <button type="submit" class="btn btn-sm <?= $u['is_active'] ? 'btn-outline-maroon remove-btn' : 'btn-gold save-btn' ?>">
                                             <?= $u['is_active'] ? 'Deactivate' : 'Activate' ?>
                                         </button>
                                     </form>
@@ -73,7 +73,9 @@ require __DIR__ . '/../../includes/layout_start.php';
         </table>
     </div>
 
-    <?php render_pagination($page, $perPage, $totalRows, $totalPages); ?>
+    <div class="card-body">
+        <?php render_pagination($page, $perPage, $totalRows, $totalPages); ?>
+    </div>
 </div>
 
 <?php require __DIR__ . '/../../includes/layout_end.php'; ?>

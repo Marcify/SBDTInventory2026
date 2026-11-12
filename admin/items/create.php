@@ -34,41 +34,43 @@ $active_nav = 'items';
 require __DIR__ . '/../../includes/layout_start.php';
 ?>
 
-<div class="edit-panel">
-    <h3 class="section-title">Add New Item</h3>
-    <p class="welcome">New items start with their available stock equal to total stock.</p>
+<div class="card edit-panel border-0 shadow-sm">
+    <div class="card-body p-4">
+        <h1 class="section-title h4">Add New Item</h1>
+        <p class="welcome">New items start with their available stock equal to total stock.</p>
 
-    <?php if ($error): ?>
-        <p class="message error"><?= htmlspecialchars($error) ?></p>
-    <?php endif; ?>
+        <?php if ($error): ?>
+            <div class="alert alert-danger message error" role="alert"><?= htmlspecialchars($error) ?></div>
+        <?php endif; ?>
 
-    <form method="POST">
-        <?= csrf_field() ?>
-        <div class="form-group">
-            <label class="form-label" for="name">Item Name</label>
-            <input type="text" id="name" name="name" required>
-        </div>
+        <form method="POST">
+            <?= csrf_field() ?>
+            <div class="mb-3 form-group">
+                <label class="form-label" for="name">Item Name</label>
+                <input type="text" class="form-control" id="name" name="name" required>
+            </div>
 
-        <div class="form-group">
-            <label class="form-label" for="category_id">Category</label>
-            <select id="category_id" name="category_id" required>
-                <option value="">-- Select Category --</option>
-                <?php foreach ($categories as $cat): ?>
-                    <option value="<?= $cat['id'] ?>"><?= htmlspecialchars($cat['name']) ?></option>
-                <?php endforeach; ?>
-            </select>
-        </div>
+            <div class="mb-3 form-group">
+                <label class="form-label" for="category_id">Category</label>
+                <select class="form-select" id="category_id" name="category_id" required>
+                    <option value="">-- Select Category --</option>
+                    <?php foreach ($categories as $cat): ?>
+                        <option value="<?= $cat['id'] ?>"><?= htmlspecialchars($cat['name']) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
 
-        <div class="form-group">
-            <label class="form-label" for="total_stock">Total Stock</label>
-            <input type="number" id="total_stock" name="total_stock" min="1" required>
-        </div>
+            <div class="mb-3 form-group">
+                <label class="form-label" for="total_stock">Total Stock</label>
+                <input type="number" class="form-control" id="total_stock" name="total_stock" min="1" required>
+            </div>
 
-        <div class="form-group-spaced">
-            <button type="submit" class="save-btn">Save Item</button>
-            <a href="index.php" class="cancel-btn">Cancel</a>
-        </div>
-    </form>
+            <div class="d-flex flex-wrap gap-2 form-group-spaced">
+                <button type="submit" class="btn btn-maroon save-btn">Save Item</button>
+                <a href="index.php" class="btn btn-outline-maroon cancel-btn">Cancel</a>
+            </div>
+        </form>
+    </div>
 </div>
 
 <?php require __DIR__ . '/../../includes/layout_end.php'; ?>

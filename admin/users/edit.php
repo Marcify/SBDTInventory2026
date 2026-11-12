@@ -76,54 +76,58 @@ $active_nav = 'users';
 require __DIR__ . '/../../includes/layout_start.php';
 ?>
 
-<div class="toolbar">
-    <h1 class="page-title">Edit User</h1>
-    <a href="index.php" class="cancel-btn">&larr; Back to Users</a>
+<div class="toolbar mb-4">
+    <h1 class="page-title h3 mb-0">Edit User</h1>
+    <a href="index.php" class="btn btn-outline-maroon cancel-btn"><i class="bi bi-arrow-left" aria-hidden="true"></i> Back to Users</a>
 </div>
 
-<div class="edit-panel">
-    <?php if ($error): ?>
-        <p class="message error"><?= htmlspecialchars($error) ?></p>
-    <?php endif; ?>
+<div class="card edit-panel border-0 shadow-sm">
+    <div class="card-body p-4">
+        <?php if ($error): ?>
+            <div class="alert alert-danger message error" role="alert"><?= htmlspecialchars($error) ?></div>
+        <?php endif; ?>
 
-    <form method="POST">
-        <?= csrf_field() ?>
-        <div class="form-group">
-            <label class="form-label" for="name">Name</label>
-            <input type="text" id="name" name="name" maxlength="120"
-                   value="<?= htmlspecialchars($editUser['name']) ?>" required>
-        </div>
-        <div class="form-group">
-            <label class="form-label" for="username">Username</label>
-            <input type="text" id="username" name="username" maxlength="50"
-                   value="<?= htmlspecialchars($editUser['username']) ?>" required>
-        </div>
-        <div class="form-group">
-            <label class="form-label" for="role">Role</label>
-            <select id="role" name="role" <?= $isSelf ? 'disabled' : '' ?>>
-                <option value="dancer" <?= $editUser['role'] === 'dancer' ? 'selected' : '' ?>>Dancer</option>
-                <option value="admin" <?= $editUser['role'] === 'admin' ? 'selected' : '' ?>>Admin</option>
-            </select>
-            <?php if ($isSelf): ?>
-                <input type="hidden" name="role" value="admin">
-                <p class="welcome">You cannot change your own role.</p>
-            <?php endif; ?>
-        </div>
-        <div class="form-group">
-            <label class="form-label" for="password">New Password <span class="welcome">(leave blank to keep current)</span></label>
-            <input type="password" id="password" name="password" minlength="8" maxlength="72"
-                   placeholder="••••••••">
-        </div>
-        <div class="form-group">
-            <label class="form-label" for="confirm_password">Confirm New Password</label>
-            <input type="password" id="confirm_password" name="confirm_password" maxlength="72"
-                   placeholder="••••••••">
-        </div>
-        <div class="form-group">
-            <button type="submit" class="save-btn">Save Changes</button>
-            <a href="index.php" class="cancel-btn">Cancel</a>
-        </div>
-    </form>
+        <form method="POST">
+            <?= csrf_field() ?>
+            <div class="row">
+                <div class="col-12 col-md-6 mb-3 form-group">
+                    <label class="form-label" for="name">Name</label>
+                    <input type="text" class="form-control" id="name" name="name" maxlength="120"
+                           value="<?= htmlspecialchars($editUser['name']) ?>" required>
+                </div>
+                <div class="col-12 col-md-6 mb-3 form-group">
+                    <label class="form-label" for="username">Username</label>
+                    <input type="text" class="form-control" id="username" name="username" maxlength="50"
+                           value="<?= htmlspecialchars($editUser['username']) ?>" required>
+                </div>
+            </div>
+            <div class="mb-3 form-group">
+                <label class="form-label" for="role">Role</label>
+                <select class="form-select" id="role" name="role" <?= $isSelf ? 'disabled' : '' ?>>
+                    <option value="dancer" <?= $editUser['role'] === 'dancer' ? 'selected' : '' ?>>Dancer</option>
+                    <option value="admin" <?= $editUser['role'] === 'admin' ? 'selected' : '' ?>>Admin</option>
+                </select>
+                <?php if ($isSelf): ?>
+                    <input type="hidden" name="role" value="admin">
+                    <p class="form-note welcome">You cannot change your own role.</p>
+                <?php endif; ?>
+            </div>
+            <div class="mb-3 form-group">
+                <label class="form-label" for="password">New Password <span class="fw-normal text-muted">(leave blank to keep current)</span></label>
+                <input type="password" class="form-control" id="password" name="password" minlength="8" maxlength="72"
+                       autocomplete="new-password" placeholder="••••••••">
+            </div>
+            <div class="mb-3 form-group">
+                <label class="form-label" for="confirm_password">Confirm New Password</label>
+                <input type="password" class="form-control" id="confirm_password" name="confirm_password" maxlength="72"
+                       autocomplete="new-password" placeholder="••••••••">
+            </div>
+            <div class="d-flex flex-wrap gap-2 form-group">
+                <button type="submit" class="btn btn-maroon save-btn">Save Changes</button>
+                <a href="index.php" class="btn btn-outline-maroon cancel-btn">Cancel</a>
+            </div>
+        </form>
+    </div>
 </div>
 
 <?php require __DIR__ . '/../../includes/layout_end.php'; ?>

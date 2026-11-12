@@ -166,47 +166,55 @@ $active_nav = 'borrowings';
 require __DIR__ . '/../../includes/layout_start.php';
 ?>
 
-<div class="toolbar">
-    <h1 class="page-title">Borrowing: <?= htmlspecialchars($borrowing['reference_code']) ?></h1>
-    <a href="index.php" class="cancel-btn">&larr; Back to Active Borrowings</a>
+<div class="toolbar mb-4">
+    <h1 class="page-title h3 mb-0">Borrowing: <?= htmlspecialchars($borrowing['reference_code']) ?></h1>
+    <a href="index.php" class="btn btn-outline-maroon cancel-btn"><i class="bi bi-arrow-left" aria-hidden="true"></i> Back to Active Borrowings</a>
 </div>
 
-<div class="summary-container">
-    <div class="summary-card">
-        <div class="card-heading">
-            <span class="card-header">Dancer</span>
+<div class="row g-3 mb-4 summary-container">
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card summary-card h-100 border-0 shadow-sm">
+            <div class="card-body">
+                <div class="small text-uppercase fw-semibold text-muted mb-2">Dancer</div>
+                <span class="summary-value"><?= htmlspecialchars($borrowing['user_name']) ?></span>
+            </div>
         </div>
-        <span class="summary-value"><?= htmlspecialchars($borrowing['user_name']) ?></span>
     </div>
-    <div class="summary-card">
-        <div class="card-heading">
-            <span class="card-header">Reason</span>
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card summary-card h-100 border-0 shadow-sm">
+            <div class="card-body">
+                <div class="small text-uppercase fw-semibold text-muted mb-2">Reason</div>
+                <span class="summary-value summary-value--soft"><?= htmlspecialchars($borrowing['reason']) ?></span>
+            </div>
         </div>
-        <span class="summary-value summary-value--soft"><?= htmlspecialchars($borrowing['reason']) ?></span>
     </div>
-    <div class="summary-card">
-        <div class="card-heading">
-            <span class="card-header">Borrowed</span>
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card summary-card h-100 border-0 shadow-sm">
+            <div class="card-body">
+                <div class="small text-uppercase fw-semibold text-muted mb-2">Borrowed</div>
+                <span class="summary-value summary-value--soft"><?= date('M d, Y h:i A', strtotime($borrowing['borrowed_at'])) ?></span>
+            </div>
         </div>
-        <span class="summary-value summary-value--soft"><?= date('M d, Y h:i A', strtotime($borrowing['borrowed_at'])) ?></span>
     </div>
-    <div class="summary-card">
-        <div class="card-heading">
-            <span class="card-header">Status</span>
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card summary-card h-100 border-0 shadow-sm">
+            <div class="card-body">
+                <div class="small text-uppercase fw-semibold text-muted mb-2">Status</div>
+                <span class="badge <?= $borrowing['status'] === 'returned' ? 'badge-returned' : ($borrowing['status'] === 'partial' ? 'badge-partial' : 'badge-borrowed') ?>">
+                    <?= ucfirst($borrowing['status']) ?>
+                </span>
+            </div>
         </div>
-        <span class="badge <?= $borrowing['status'] === 'returned' ? 'badge-returned' : ($borrowing['status'] === 'partial' ? 'badge-partial' : 'badge-borrowed') ?>">
-            <?= ucfirst($borrowing['status']) ?>
-        </span>
     </div>
 </div>
 
 <?php if ($error): ?>
-    <p class="message error"><?= htmlspecialchars($error) ?></p>
+    <div class="alert alert-danger message error" role="alert"><?= htmlspecialchars($error) ?></div>
 <?php endif; ?>
 
-<div class="content-box">
-    <div class="table-wrapper">
-        <table>
+<div class="card content-box border-0 shadow-sm">
+    <div class="table-responsive table-wrapper">
+        <table class="table table-striped table-hover align-middle mb-0">
             <thead>
                 <tr>
                     <th>Item</th>
@@ -226,9 +234,9 @@ require __DIR__ . '/../../includes/layout_start.php';
                         <td><?= $d['quantity_returned'] ?></td>
                         <td>
                             <?php $pct = $d['quantity_borrowed'] > 0 ? (int)round($d['quantity_returned'] / $d['quantity_borrowed'] * 100) : 0; ?>
-                            <div class="progress">
-                                <div class="progress-track">
-                                    <div class="progress-fill <?= $pct >= 100 ? 'progress-done' : '' ?>" style="width: <?= $pct ?>%;"></div>
+                            <div class="return-progress">
+                                <div class="progress" role="progressbar" aria-valuenow="<?= $pct ?>" aria-valuemin="0" aria-valuemax="100">
+                                    <div class="progress-bar <?= $pct >= 100 ? 'bg-success' : 'bg-gold' ?>" style="width: <?= $pct ?>%;"></div>
                                 </div>
                                 <div class="progress-label">
                                     <?= $pct ?>% &middot; <?= $remaining ?> still out
@@ -240,13 +248,13 @@ require __DIR__ . '/../../includes/layout_start.php';
                                 <form method="POST" class="inline-form">
                                     <?= csrf_field() ?>
                                     <input type="hidden" name="detail_id" value="<?= $d['id'] ?>">
-                                    <input type="number" name="quantity" min="1" max="<?= $remaining ?>" value="<?= $remaining ?>" required class="input-qty">
-                                    <select name="condition" required>
+                                    <input type="number" name="quantity" min="1" max="<?= $remaining ?>" value="<?= $remaining ?>" required class="form-control form-control-sm input-qty">
+                                    <select name="condition" class="form-select form-select-sm" required>
                                         <option value="good">Good</option>
                                         <option value="damaged">Damaged</option>
                                         <option value="lost">Lost</option>
                                     </select>
-                                    <button type="submit" class="save-btn">Return</button>
+                                    <button type="submit" class="btn btn-sm btn-maroon save-btn">Return</button>
                                 </form>
                             <?php else: ?>
                                 <span class="badge badge-returned">Fully Returned</span>

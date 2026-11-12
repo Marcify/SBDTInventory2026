@@ -36,43 +36,47 @@ $active_nav = 'users';
 require __DIR__ . '/../../includes/layout_start.php';
 ?>
 
-<div class="edit-panel">
-    <h3 class="section-title">Add New User</h3>
+<div class="card edit-panel border-0 shadow-sm">
+    <div class="card-body p-4">
+        <h1 class="section-title h4">Add New User</h1>
 
-    <?php if ($error): ?>
-        <p class="message error"><?= htmlspecialchars($error) ?></p>
-    <?php endif; ?>
+        <?php if ($error): ?>
+            <div class="alert alert-danger message error" role="alert"><?= htmlspecialchars($error) ?></div>
+        <?php endif; ?>
 
-    <form method="POST">
-        <?= csrf_field() ?>
-        <div class="form-group">
-            <label class="form-label" for="name">Full Name</label>
-            <input type="text" id="name" name="name" required>
-        </div>
+        <form method="POST">
+            <?= csrf_field() ?>
+            <div class="row">
+                <div class="col-12 col-md-6 mb-3 form-group">
+                    <label class="form-label" for="name">Full Name</label>
+                    <input type="text" class="form-control" id="name" name="name" required>
+                </div>
 
-        <div class="form-group">
-            <label class="form-label" for="username">Username</label>
-            <input type="text" id="username" name="username" required>
-        </div>
+                <div class="col-12 col-md-6 mb-3 form-group">
+                    <label class="form-label" for="username">Username</label>
+                    <input type="text" class="form-control" id="username" name="username" required>
+                </div>
+            </div>
 
-        <div class="form-group">
-            <label class="form-label" for="password">Password</label>
-            <input type="password" id="password" name="password" required>
-        </div>
+            <div class="mb-3 form-group">
+                <label class="form-label" for="password">Password</label>
+                <input type="password" class="form-control" id="password" name="password" autocomplete="new-password" required>
+            </div>
 
-        <div class="form-group">
-            <label class="form-label" for="role">Role</label>
-            <select id="role" name="role" required>
-                <option value="dancer">Dancer</option>
-                <option value="admin">Admin</option>
-            </select>
-        </div>
+            <div class="mb-3 form-group">
+                <label class="form-label" for="role">Role</label>
+                <select class="form-select" id="role" name="role" required>
+                    <option value="dancer">Dancer</option>
+                    <option value="admin">Admin</option>
+                </select>
+            </div>
 
-        <div class="form-group-spaced">
-            <button type="submit" class="save-btn">Create User</button>
-            <a href="index.php" class="cancel-btn">Cancel</a>
-        </div>
-    </form>
+            <div class="d-flex flex-wrap gap-2 form-group-spaced">
+                <button type="submit" class="btn btn-maroon save-btn">Create User</button>
+                <a href="index.php" class="btn btn-outline-maroon cancel-btn">Cancel</a>
+            </div>
+        </form>
+    </div>
 </div>
 
 <?php require __DIR__ . '/../../includes/layout_end.php'; ?>

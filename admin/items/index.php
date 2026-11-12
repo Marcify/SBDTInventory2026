@@ -46,25 +46,35 @@ $active_nav = 'items';
 require __DIR__ . '/../../includes/layout_start.php';
 ?>
 
-<div class="toolbar">
-    <h1 class="page-title">Manage Items</h1>
-    <a href="create.php" class="add-btn">+ Add New Item</a>
+<div class="toolbar mb-4">
+    <h1 class="page-title h3 mb-0">Manage Items</h1>
+    <a href="create.php" class="btn btn-maroon add-btn"><i class="bi bi-plus-lg" aria-hidden="true"></i> Add New Item</a>
 </div>
 
-<div class="content-box">
-    <div class="table-search">
-        <form method="GET" class="search-form">
-            <input type="text" name="q" class="search-input"
-                   placeholder="Search item or category&hellip;"
-                   value="<?= htmlspecialchars($q) ?>">
-            <button type="submit" class="search-btn">Search</button>
+<div class="card content-box border-0 shadow-sm">
+    <div class="card-body border-bottom table-search">
+        <form method="GET" class="search-form row g-2 align-items-center">
+            <div class="col-12 col-md">
+                <label class="visually-hidden" for="item-search">Search items</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search" aria-hidden="true"></i></span>
+                    <input type="text" id="item-search" name="q" class="form-control search-input"
+                           placeholder="Search item or category&hellip;"
+                           value="<?= htmlspecialchars($q) ?>">
+                </div>
+            </div>
+            <div class="col-6 col-md-auto">
+                <button type="submit" class="btn btn-maroon search-btn w-100">Search</button>
+            </div>
             <?php if ($q !== ''): ?>
-                <a href="index.php" class="cancel-btn">Clear</a>
+                <div class="col-6 col-md-auto">
+                    <a href="index.php" class="btn btn-outline-maroon cancel-btn w-100">Clear</a>
+                </div>
             <?php endif; ?>
         </form>
     </div>
-    <div class="table-wrapper">
-        <table>
+    <div class="table-responsive table-wrapper">
+        <table class="table table-striped table-hover align-middle mb-0">
             <thead>
                 <tr>
                     <th>ID</th>
@@ -104,15 +114,15 @@ require __DIR__ . '/../../includes/layout_start.php';
                             </td>
                             <td>
                                 <div class="row-actions">
-                                    <a href="edit.php?id=<?= $item['id'] ?>" class="edit-btn">Edit</a>
+                                    <a href="edit.php?id=<?= $item['id'] ?>" class="btn btn-sm btn-outline-maroon edit-btn">Edit</a>
                                     <?php if ((int)$item['damaged_stock'] > 0): ?>
-                                        <a href="repair.php?id=<?= $item['id'] ?>" class="edit-btn">Repair (<?= $item['damaged_stock'] ?>)</a>
+                                        <a href="repair.php?id=<?= $item['id'] ?>" class="btn btn-sm btn-gold edit-btn">Repair (<?= $item['damaged_stock'] ?>)</a>
                                     <?php endif; ?>
                                     <form action="toggle_status.php" method="POST">
                                         <?= csrf_field() ?>
                                         <input type="hidden" name="id" value="<?= $item['id'] ?>">
                                         <input type="hidden" name="current_status" value="<?= $item['is_active'] ?>">
-                                        <button type="submit" class="<?= $item['is_active'] ? 'remove-btn' : 'save-btn' ?>">
+                                        <button type="submit" class="btn btn-sm <?= $item['is_active'] ? 'btn-outline-maroon remove-btn' : 'btn-gold save-btn' ?>">
                                             <?= $item['is_active'] ? 'Archive' : 'Unarchive' ?>
                                         </button>
                                     </form>
@@ -126,7 +136,9 @@ require __DIR__ . '/../../includes/layout_start.php';
         </table>
     </div>
 
-    <?php render_pagination($page, $perPage, $totalRows, $totalPages); ?>
+    <div class="card-body">
+        <?php render_pagination($page, $perPage, $totalRows, $totalPages); ?>
+    </div>
 </div>
 
 <?php require __DIR__ . '/../../includes/layout_end.php'; ?>

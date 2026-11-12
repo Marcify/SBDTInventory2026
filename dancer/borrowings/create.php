@@ -169,48 +169,58 @@ $active_nav = 'borrow';
 require __DIR__ . '/../../includes/layout_start.php';
 ?>
 
-<h1 class="page-title">Borrow an Item</h1>
-<p class="welcome">Add each item you need. All lines are borrowed together under one reference code.</p>
+<div class="mb-4">
+    <h1 class="page-title h3 mb-1">Borrow an Item</h1>
+    <p class="welcome mb-0">Add each item you need. All lines are borrowed together under one reference code.</p>
+</div>
 
 <?php if ($error): ?>
-    <p class="message error"><?= htmlspecialchars($error) ?></p>
+    <div class="alert alert-danger message error" role="alert"><?= htmlspecialchars($error) ?></div>
 <?php endif; ?>
 <?php if ($success): ?>
-    <p class="message success"><?= htmlspecialchars($success) ?></p>
+    <div class="alert alert-success message success" role="alert"><?= htmlspecialchars($success) ?></div>
 <?php endif; ?>
 
-<div class="content-box">
-    <form method="POST" id="borrow-form">
-        <?= csrf_field() ?>
+<div class="card content-box border-0 shadow-sm">
+    <div class="card-body p-4">
+        <form method="POST" id="borrow-form">
+            <?= csrf_field() ?>
 
-        <div id="item-rows">
-            <div class="item-row">
-                <span class="item-line">
-                    <select name="item_id[]" required>
-                        <option value="">-- Choose an item --</option>
-                        <?php foreach ($items as $item): ?>
-                            <option value="<?= $item['id'] ?>">
-                                <?= htmlspecialchars($item['name']) ?> (<?= $item['available_stock'] ?> available)
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                    <input type="number" name="quantity[]" min="1" placeholder="Qty" required>
-                    <button type="button" class="remove-btn remove-row">Remove</button>
-                </span>
+            <div id="item-rows">
+                <div class="item-row">
+                    <div class="item-line row g-2 align-items-center">
+                        <div class="col-12 col-md">
+                            <select name="item_id[]" class="form-select" required>
+                                <option value="">-- Choose an item --</option>
+                                <?php foreach ($items as $item): ?>
+                                    <option value="<?= $item['id'] ?>">
+                                        <?= htmlspecialchars($item['name']) ?> (<?= $item['available_stock'] ?> available)
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="col-6 col-md-2">
+                            <input type="number" name="quantity[]" class="form-control" min="1" placeholder="Qty" required>
+                        </div>
+                        <div class="col-6 col-md-auto">
+                            <button type="button" class="btn btn-outline-maroon remove-btn remove-row w-100">Remove</button>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
 
-        <button type="button" id="add-row" class="add-btn add-row-btn">+ Add another item</button>
+            <button type="button" id="add-row" class="btn btn-gold add-btn add-row-btn mt-2"><i class="bi bi-plus-lg" aria-hidden="true"></i> Add another item</button>
 
-        <div class="form-group form-group-spaced">
-            <label class="form-label" for="reason">Reason for Borrowing</label>
-            <input type="text" id="reason" name="reason" required placeholder="e.g., Practice for Recital">
-        </div>
+            <div class="mb-3 form-group form-group-spaced mt-4">
+                <label class="form-label" for="reason">Reason for Borrowing</label>
+                <input type="text" class="form-control" id="reason" name="reason" required placeholder="e.g., Practice for Recital">
+            </div>
 
-        <div class="form-group-spaced">
-            <button type="submit" class="borrow-btn">Submit Borrow Request</button>
-        </div>
-    </form>
+            <div class="form-group-spaced">
+                <button type="submit" class="btn btn-maroon borrow-btn">Submit Borrow Request</button>
+            </div>
+        </form>
+    </div>
 </div>
 
 <script>

@@ -26,12 +26,14 @@ $active_nav = 'my-borrowings';
 require __DIR__ . '/../../includes/layout_start.php';
 ?>
 
-<h1 class="page-title">My Borrowings</h1>
-<p class="welcome">Everything you have borrowed, with its return status. Returned borrowings are kept for your records.</p>
+<div class="mb-4">
+    <h1 class="page-title h3 mb-1">My Borrowings</h1>
+    <p class="welcome mb-0">Everything you have borrowed, with its return status. Returned borrowings are kept for your records.</p>
+</div>
 
-<div class="content-box">
-    <div class="table-wrapper">
-        <table>
+<div class="card content-box border-0 shadow-sm">
+    <div class="table-responsive table-wrapper">
+        <table class="table table-striped table-hover align-middle mb-0">
             <thead>
                 <tr>
                     <th>Reference Code</th>
@@ -59,7 +61,7 @@ require __DIR__ . '/../../includes/layout_start.php';
                             </td>
                             <td>
                                 <div class="row-actions">
-                                    <a href="view.php?id=<?= $b['id'] ?>" class="edit-btn">View</a>
+                                    <a href="view.php?id=<?= $b['id'] ?>" class="btn btn-sm btn-outline-maroon edit-btn">View</a>
                                 </div>
                             </td>
                         </tr>
@@ -69,7 +71,9 @@ require __DIR__ . '/../../includes/layout_start.php';
         </table>
     </div>
 
-    <?php render_pagination($page, $perPage, $totalRows, $totalPages); ?>
+    <div class="card-body">
+        <?php render_pagination($page, $perPage, $totalRows, $totalPages); ?>
+    </div>
 </div>
 
 <?php require __DIR__ . '/../../includes/layout_end.php'; ?>

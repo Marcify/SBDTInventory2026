@@ -59,29 +59,44 @@ $active_nav = 'borrowings';
 require __DIR__ . '/../../includes/layout_start.php';
 ?>
 
-<h1 class="page-title">Borrowings</h1>
+<div class="d-flex flex-wrap align-items-end justify-content-between gap-3 mb-4">
+    <div>
+        <h1 class="page-title h3 mb-1">Borrowings</h1>
+        <p class="welcome mb-0"><?= (int)$activeCount ?> active borrowing<?= (int)$activeCount === 1 ? '' : 's' ?></p>
+    </div>
+</div>
 
-<div class="content-box">
-    <div class="table-search">
-        <form method="GET" class="filter-form">
-            <select name="status" class="filter-select">
-                <option value="">All statuses</option>
-                <option value="borrowed" <?= $statusFilter === 'borrowed' ? 'selected' : '' ?>>Borrowed</option>
-                <option value="partial" <?= $statusFilter === 'partial' ? 'selected' : '' ?>>Partial</option>
-                <option value="returned" <?= $statusFilter === 'returned' ? 'selected' : '' ?>>Returned</option>
-            </select>
-            <input type="text" name="q" class="filter-input"
-                   placeholder="Search dancer, reason, or reference&hellip;"
-                   value="<?= htmlspecialchars($search) ?>">
-            <button type="submit" class="search-btn">Filter</button>
+<div class="card content-box border-0 shadow-sm">
+    <div class="card-body border-bottom table-search">
+        <form method="GET" class="filter-form row g-2 align-items-center">
+            <div class="col-12 col-md-3">
+                <label class="visually-hidden" for="status-filter">Status</label>
+                <select id="status-filter" name="status" class="form-select filter-select">
+                    <option value="">All statuses</option>
+                    <option value="borrowed" <?= $statusFilter === 'borrowed' ? 'selected' : '' ?>>Borrowed</option>
+                    <option value="partial" <?= $statusFilter === 'partial' ? 'selected' : '' ?>>Partial</option>
+                    <option value="returned" <?= $statusFilter === 'returned' ? 'selected' : '' ?>>Returned</option>
+                </select>
+            </div>
+            <div class="col-12 col-md">
+                <label class="visually-hidden" for="borrowing-search">Search borrowings</label>
+                <input type="text" id="borrowing-search" name="q" class="form-control filter-input"
+                       placeholder="Search dancer, reason, or reference&hellip;"
+                       value="<?= htmlspecialchars($search) ?>">
+            </div>
+            <div class="col-6 col-md-auto">
+                <button type="submit" class="btn btn-maroon search-btn w-100">Filter</button>
+            </div>
             <?php if ($statusFilter !== '' || $search !== ''): ?>
-                <a href="index.php" class="cancel-btn">Clear</a>
+                <div class="col-6 col-md-auto">
+                    <a href="index.php" class="btn btn-outline-maroon cancel-btn w-100">Clear</a>
+                </div>
             <?php endif; ?>
         </form>
     </div>
 
-    <div class="table-wrapper">
-        <table>
+    <div class="table-responsive table-wrapper">
+        <table class="table table-striped table-hover align-middle mb-0">
             <thead>
                 <tr>
                     <th>Reference Code</th>
@@ -111,7 +126,7 @@ require __DIR__ . '/../../includes/layout_start.php';
                             </td>
                             <td>
                                 <div class="row-actions">
-                                    <a href="view.php?id=<?= $b['id'] ?>" class="edit-btn">
+                                    <a href="view.php?id=<?= $b['id'] ?>" class="btn btn-sm btn-outline-maroon edit-btn">
                                         <?= $isReturned ? 'View' : 'View / Return' ?>
                                     </a>
                                 </div>
@@ -123,7 +138,9 @@ require __DIR__ . '/../../includes/layout_start.php';
         </table>
     </div>
 
-    <?php render_pagination($page, $perPage, $totalRows, $totalPages); ?>
+    <div class="card-body">
+        <?php render_pagination($page, $perPage, $totalRows, $totalPages); ?>
+    </div>
 </div>
 
 <?php require __DIR__ . '/../../includes/layout_end.php'; ?>

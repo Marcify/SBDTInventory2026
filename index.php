@@ -54,38 +54,56 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-
+    <meta name="theme-color" content="#841818">
+    <title>Sign In - SBDT Inventory</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link rel="stylesheet" href="./assets/css/styles.css">
 </head>
 <body class="login-page">
 
-<div>
-    <img class="logo" src="./assets/images/sbdt-logo.png" alt="SBDT Logo">
+<div class="card login-card">
+    <div class="login-accent" aria-hidden="true"></div>
+    <div class="card-body p-4 p-sm-5">
+        <img class="logo" src="./assets/images/sbdt-logo.png" alt="SBDT Logo">
 
-    <div class="login-card">
         <h1 class="system-name">Inventory Management System</h1>
         <p class="description">Sign in to your account</p>
 
         <?php if ($error): ?>
-            <p class="message error"><?php echo htmlspecialchars($error); ?></p>
+            <div class="alert alert-danger text-start message error" role="alert"><?php echo htmlspecialchars($error); ?></div>
         <?php endif; ?>
-        <form method="post">
-            <div class="form-group">
-                <label class="form-label" for="username">Username:</label>
-                <input type="text" id="username" name="username" required>
+        <form method="post" class="text-start">
+            <div class="mb-3 form-group">
+                <label class="form-label" for="username">Username</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-person" aria-hidden="true"></i></span>
+                    <input type="text" class="form-control" id="username" name="username" autocomplete="username" required>
+                </div>
             </div>
 
-            <div class="form-group">
-                <label class="form-label" for="password">Password:</label>
-                <input type="password" id="password" name="password" required>
+            <div class="mb-4 form-group">
+                <label class="form-label" for="password">Password</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-lock" aria-hidden="true"></i></span>
+                    <input type="password" class="form-control" id="password" name="password" autocomplete="current-password" required>
+                </div>
             </div>
 
-            <button type="submit">Login</button>
+            <button type="submit" class="btn btn-maroon w-100">Login</button>
         </form>
     </div>
 </div>
-    
-    
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.querySelector('form')?.addEventListener('submit', function (event) {
+        if (event.defaultPrevented) return;
+        var btn = this.querySelector('button[type="submit"]');
+        if (!btn) return;
+        btn.classList.add('btn-loading');
+        btn.setAttribute('aria-busy', 'true');
+    });
+</script>
 </body>
 </html>

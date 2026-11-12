@@ -30,25 +30,35 @@ $active_nav = 'items';
 require __DIR__ . '/../../includes/layout_start.php';
 ?>
 
-<div class="toolbar">
-    <h1 class="page-title">Browse Items</h1>
-    <a href="../borrowings/create.php" class="borrow-btn">Go to Borrow Form</a>
+<div class="toolbar mb-4">
+    <h1 class="page-title h3 mb-0">Browse Items</h1>
+    <a href="../borrowings/create.php" class="btn btn-maroon borrow-btn">Go to Borrow Form</a>
 </div>
 
-<div class="content-box">
-    <div class="table-search">
-        <form method="GET" class="search-form">
-            <input type="text" name="q" class="search-input"
-                   placeholder="Search item or category&hellip;"
-                   value="<?= htmlspecialchars($q) ?>">
-            <button type="submit" class="search-btn">Search</button>
+<div class="card content-box border-0 shadow-sm">
+    <div class="card-body border-bottom table-search">
+        <form method="GET" class="search-form row g-2 align-items-center">
+            <div class="col-12 col-md">
+                <label class="visually-hidden" for="browse-search">Search items</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search" aria-hidden="true"></i></span>
+                    <input type="text" id="browse-search" name="q" class="form-control search-input"
+                           placeholder="Search item or category&hellip;"
+                           value="<?= htmlspecialchars($q) ?>">
+                </div>
+            </div>
+            <div class="col-6 col-md-auto">
+                <button type="submit" class="btn btn-maroon search-btn w-100">Search</button>
+            </div>
             <?php if ($q !== ''): ?>
-                <a href="index.php" class="cancel-btn">Clear</a>
+                <div class="col-6 col-md-auto">
+                    <a href="index.php" class="btn btn-outline-maroon cancel-btn w-100">Clear</a>
+                </div>
             <?php endif; ?>
         </form>
     </div>
-    <div class="table-wrapper">
-        <table>
+    <div class="table-responsive table-wrapper">
+        <table class="table table-striped table-hover align-middle mb-0">
             <thead>
                 <tr>
                     <th>Category</th>

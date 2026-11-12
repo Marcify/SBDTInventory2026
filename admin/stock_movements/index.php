@@ -25,11 +25,11 @@ $active_nav = 'stock';
 require __DIR__ . '/../../includes/layout_start.php';
 ?>
 
-<h1 class="page-title">Stock Movements History</h1>
+<h1 class="page-title h3">Stock Movements History</h1>
 
-<div class="content-box">
-    <div class="table-wrapper">
-        <table>
+<div class="card content-box border-0 shadow-sm">
+    <div class="table-responsive table-wrapper">
+        <table class="table table-striped table-hover align-middle mb-0">
             <thead>
                 <tr>
                     <th>Date &amp; Time</th>
@@ -65,7 +65,9 @@ require __DIR__ . '/../../includes/layout_start.php';
         </table>
     </div>
 
-    <?php render_pagination($page, $perPage, $totalRows, $totalPages); ?>
+    <div class="card-body">
+        <?php render_pagination($page, $perPage, $totalRows, $totalPages); ?>
+    </div>
 </div>
 
 <?php require __DIR__ . '/../../includes/layout_end.php'; ?>

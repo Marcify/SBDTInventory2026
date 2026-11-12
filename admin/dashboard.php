@@ -36,56 +36,88 @@ $active_nav = 'dashboard';
 require __DIR__ . '/../includes/layout_start.php';
 ?>
 
-<h1 class="page-title">Admin Dashboard</h1>
-<p class="welcome">Welcome back, <strong><?= htmlspecialchars($user['name'] ?? $user['username']) ?></strong>! Here's where your inventory stands today.</p>
+<div class="mb-4">
+    <h1 class="page-title h3 mb-1">Admin Dashboard</h1>
+    <p class="welcome mb-0">Welcome back, <strong><?= htmlspecialchars($user['name'] ?? $user['username']) ?></strong>! Here's where your inventory stands today.</p>
+</div>
 
-<div class="summary-container summary-cols-3">
-    <div class="summary-card">
-        <div class="card-heading">
-            <h6>Active Items</h6>
+<div class="row g-3 mb-4 summary-container summary-cols-3">
+    <div class="col-12 col-sm-6 col-xl-4">
+        <div class="card summary-card h-100 border-0 shadow-sm">
+            <div class="card-body d-flex align-items-center gap-3">
+                <span class="stat-icon"><i class="bi bi-box-seam" aria-hidden="true"></i></span>
+                <div>
+                    <div class="small text-uppercase fw-semibold text-muted">Active Items</div>
+                    <div class="stat-value"><?= (int)$stats['item_count'] ?></div>
+                </div>
+            </div>
         </div>
-        <h3><?= (int)$stats['item_count'] ?></h3>
     </div>
-    <div class="summary-card">
-        <div class="card-heading">
-            <h6>Total Physical Stock</h6>
+    <div class="col-12 col-sm-6 col-xl-4">
+        <div class="card summary-card h-100 border-0 shadow-sm">
+            <div class="card-body d-flex align-items-center gap-3">
+                <span class="stat-icon"><i class="bi bi-stack" aria-hidden="true"></i></span>
+                <div>
+                    <div class="small text-uppercase fw-semibold text-muted">Total Physical Stock</div>
+                    <div class="stat-value"><?= (int)$stats['total_stock'] ?></div>
+                </div>
+            </div>
         </div>
-        <h3><?= (int)$stats['total_stock'] ?></h3>
     </div>
-    <div class="summary-card">
-        <div class="card-heading">
-            <h6>Available to Borrow</h6>
+    <div class="col-12 col-sm-6 col-xl-4">
+        <div class="card summary-card h-100 border-0 shadow-sm">
+            <div class="card-body d-flex align-items-center gap-3">
+                <span class="stat-icon"><i class="bi bi-check2-circle" aria-hidden="true"></i></span>
+                <div>
+                    <div class="small text-uppercase fw-semibold text-muted">Available to Borrow</div>
+                    <div class="stat-value"><?= (int)$stats['available_stock'] ?></div>
+                </div>
+            </div>
         </div>
-        <h3><?= (int)$stats['available_stock'] ?></h3>
     </div>
-    <div class="summary-card">
-        <div class="card-heading">
-            <h6>Borrowed Units</h6>
+    <div class="col-12 col-sm-6 col-xl-4">
+        <div class="card summary-card h-100 border-0 shadow-sm">
+            <div class="card-body d-flex align-items-center gap-3">
+                <span class="stat-icon"><i class="bi bi-arrow-left-right" aria-hidden="true"></i></span>
+                <div>
+                    <div class="small text-uppercase fw-semibold text-muted">Borrowed Units</div>
+                    <div class="stat-value"><?= (int)$stats['borrowed_units'] ?></div>
+                </div>
+            </div>
         </div>
-        <h3><?= (int)$stats['borrowed_units'] ?></h3>
     </div>
-    <div class="summary-card">
-        <div class="card-heading">
-            <h6>Damaged</h6>
+    <div class="col-12 col-sm-6 col-xl-4">
+        <div class="card summary-card h-100 border-0 shadow-sm">
+            <div class="card-body d-flex align-items-center gap-3">
+                <span class="stat-icon"><i class="bi bi-bandaid" aria-hidden="true"></i></span>
+                <div>
+                    <div class="small text-uppercase fw-semibold text-muted">Damaged</div>
+                    <div class="stat-value"><?= (int)$stats['damaged_units'] ?></div>
+                </div>
+            </div>
         </div>
-        <h3><?= (int)$stats['damaged_units'] ?></h3>
     </div>
-    <div class="summary-card">
-        <div class="card-heading">
-            <h6>Lost</h6>
+    <div class="col-12 col-sm-6 col-xl-4">
+        <div class="card summary-card h-100 border-0 shadow-sm">
+            <div class="card-body d-flex align-items-center gap-3">
+                <span class="stat-icon"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i></span>
+                <div>
+                    <div class="small text-uppercase fw-semibold text-muted">Lost</div>
+                    <div class="stat-value"><?= (int)$stats['lost_units'] ?></div>
+                </div>
+            </div>
         </div>
-        <h3><?= (int)$stats['lost_units'] ?></h3>
     </div>
 </div>
 
-<div class="content-box">
-    <div class="section-header">
-        <h3 class="section-title">Recent Borrowings</h3>
-        <a href="borrowings/index.php" class="filter-link">View all &rarr;</a>
+<div class="card content-box border-0 shadow-sm">
+    <div class="card-header section-header bg-white">
+        <h2 class="section-title h5 mb-0">Recent Borrowings</h2>
+        <a href="borrowings/index.php" class="btn btn-sm btn-outline-maroon filter-link">View all <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
     </div>
 
-    <div class="table-wrapper">
-        <table>
+    <div class="table-responsive table-wrapper">
+        <table class="table table-striped table-hover align-middle mb-0">
             <thead>
                 <tr>
                     <th>Reference Code</th>
@@ -113,7 +145,7 @@ require __DIR__ . '/../includes/layout_start.php';
                             </td>
                             <td>
                                 <div class="row-actions">
-                                    <a href="borrowings/view.php?id=<?= $b['id'] ?>" class="edit-btn">
+                                    <a href="borrowings/view.php?id=<?= $b['id'] ?>" class="btn btn-sm btn-outline-maroon edit-btn">
                                         <?= $isReturned ? 'View' : 'View / Return' ?>
                                     </a>
                                 </div>

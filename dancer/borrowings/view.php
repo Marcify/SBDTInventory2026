@@ -64,38 +64,44 @@ $active_nav = 'my-borrowings';
 require __DIR__ . '/../../includes/layout_start.php';
 ?>
 
-<div class="toolbar">
-    <h1 class="page-title">Borrowing: <?= htmlspecialchars($borrowing['reference_code']) ?></h1>
-    <a href="index.php" class="cancel-btn">&larr; Back to My Borrowings</a>
+<div class="toolbar mb-4">
+    <h1 class="page-title h3 mb-0">Borrowing: <?= htmlspecialchars($borrowing['reference_code']) ?></h1>
+    <a href="index.php" class="btn btn-outline-maroon cancel-btn"><i class="bi bi-arrow-left" aria-hidden="true"></i> Back to My Borrowings</a>
 </div>
 
-<div class="summary-container">
-    <div class="summary-card">
-        <div class="card-heading">
-            <h6>Reason</h6>
+<div class="row g-3 mb-4 summary-container">
+    <div class="col-12 col-md-4">
+        <div class="card summary-card h-100 border-0 shadow-sm">
+            <div class="card-body">
+                <div class="small text-uppercase fw-semibold text-muted mb-2">Reason</div>
+                <h2 class="summary-value summary-value--soft h6"><?= htmlspecialchars($borrowing['reason']) ?></h2>
+            </div>
         </div>
-        <h6 class="summary-value"><?= htmlspecialchars($borrowing['reason']) ?></h6>
     </div>
-    <div class="summary-card">
-        <div class="card-heading">
-            <h6>Borrowed</h6>
+    <div class="col-12 col-md-4">
+        <div class="card summary-card h-100 border-0 shadow-sm">
+            <div class="card-body">
+                <div class="small text-uppercase fw-semibold text-muted mb-2">Borrowed</div>
+                <h2 class="summary-value summary-value--soft h6"><?= date('M d, Y h:i A', strtotime($borrowing['borrowed_at'])) ?></h2>
+            </div>
         </div>
-        <h6 class="summary-value summary-value--soft"><?= date('M d, Y h:i A', strtotime($borrowing['borrowed_at'])) ?></h6>
     </div>
-    <div class="summary-card">
-        <div class="card-heading">
-            <h6>Status</h6>
+    <div class="col-12 col-md-4">
+        <div class="card summary-card h-100 border-0 shadow-sm">
+            <div class="card-body">
+                <div class="small text-uppercase fw-semibold text-muted mb-2">Status</div>
+                <?php $isReturned = $borrowing['status'] === 'returned'; ?>
+                <span class="badge <?= $isReturned ? 'badge-returned' : ($borrowing['status'] === 'partial' ? 'badge-partial' : 'badge-borrowed') ?>">
+                    <?= ucfirst($borrowing['status']) ?>
+                </span>
+            </div>
         </div>
-        <?php $isReturned = $borrowing['status'] === 'returned'; ?>
-        <span class="badge <?= $isReturned ? 'badge-returned' : ($borrowing['status'] === 'partial' ? 'badge-partial' : 'badge-borrowed') ?>">
-            <?= ucfirst($borrowing['status']) ?>
-        </span>
     </div>
 </div>
 
-<div class="content-box">
-    <div class="table-wrapper">
-        <table>
+<div class="card content-box border-0 shadow-sm">
+    <div class="table-responsive table-wrapper">
+        <table class="table table-striped table-hover align-middle mb-0">
             <thead>
                 <tr>
                     <th>Item</th>
@@ -117,9 +123,9 @@ require __DIR__ . '/../../includes/layout_start.php';
                         <td class="quantity"><?= $d['quantity_borrowed'] ?></td>
                         <td><?= $d['quantity_returned'] ?></td>
                         <td>
-                            <div class="progress">
-                                <div class="progress-track">
-                                    <div class="progress-fill <?= $pct >= 100 ? 'progress-done' : '' ?>" style="width: <?= $pct ?>%;"></div>
+                            <div class="return-progress">
+                                <div class="progress" role="progressbar" aria-valuenow="<?= $pct ?>" aria-valuemin="0" aria-valuemax="100">
+                                    <div class="progress-bar <?= $pct >= 100 ? 'bg-success' : 'bg-gold' ?>" style="width: <?= $pct ?>%;"></div>
                                 </div>
                                 <div class="progress-label">
                                     <?= $pct ?>% &middot; <?= $remaining ?> still out

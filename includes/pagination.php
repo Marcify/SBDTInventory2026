@@ -74,14 +74,14 @@ function render_pagination(int $page, int $perPage, int $totalRows, int $totalPa
         sort($pagesToShow);
     }
 
-    echo '<div class="pagination">';
-    echo '<p class="pagination-summary">Showing ' . $from . '&ndash;' . $to
+    echo '<div class="pagination d-flex flex-wrap align-items-center justify-content-between gap-3 mt-3">';
+    echo '<p class="pagination-summary mb-0 small">Showing ' . $from . '&ndash;' . $to
         . ' of ' . $totalRows . '</p>';
-    echo '<div class="pagination-controls">';
+    echo '<ul class="pagination pagination-controls mb-0">';
 
     if ($page > 1) {
-        echo '<a class="page-link" href="' . htmlspecialchars(pagination_link($page - 1))
-            . '">&laquo; Prev</a>';
+        echo '<li class="page-item"><a class="page-link" href="' . htmlspecialchars(pagination_link($page - 1))
+            . '">&laquo; Prev</a></li>';
     }
 
     $previous = 0;
@@ -89,24 +89,24 @@ function render_pagination(int $page, int $perPage, int $totalRows, int $totalPa
     foreach ($pagesToShow as $p) {
         // Insert an ellipsis wherever numbers were skipped.
         if ($previous !== 0 && $p - $previous > 1) {
-            echo '<span class="pagination-ellipsis">&hellip;</span>';
+            echo '<li class="page-item disabled"><span class="page-link pagination-ellipsis">&hellip;</span></li>';
         }
 
         if ($p === $page) {
-            echo '<button type="button" class="is-current">' . $p . '</button>';
+            echo '<li class="page-item active" aria-current="page"><span class="page-link">' . $p . '</span></li>';
         } else {
-            echo '<a class="page-link" href="' . htmlspecialchars(pagination_link($p))
-                . '">' . $p . '</a>';
+            echo '<li class="page-item"><a class="page-link" href="' . htmlspecialchars(pagination_link($p))
+                . '">' . $p . '</a></li>';
         }
 
         $previous = $p;
     }
 
     if ($page < $totalPages) {
-        echo '<a class="page-link" href="' . htmlspecialchars(pagination_link($page + 1))
-            . '">Next &raquo;</a>';
+        echo '<li class="page-item"><a class="page-link" href="' . htmlspecialchars(pagination_link($page + 1))
+            . '">Next &raquo;</a></li>';
     }
 
-    echo '</div>';
+    echo '</ul>';
     echo '</div>';
 }
