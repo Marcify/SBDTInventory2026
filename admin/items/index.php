@@ -48,19 +48,21 @@ require __DIR__ . '/../../includes/layout_start.php';
 
 <div class="toolbar">
     <h1 class="page-title">Manage Items</h1>
-    <form method="GET" class="search-form">
-        <input type="text" name="q" class="search-input"
-               placeholder="Search item or category&hellip;"
-               value="<?= htmlspecialchars($q) ?>">
-        <button type="submit" class="search-btn">Search</button>
-        <?php if ($q !== ''): ?>
-            <a href="index.php" class="cancel-btn">Clear</a>
-        <?php endif; ?>
-    </form>
     <a href="create.php" class="add-btn">+ Add New Item</a>
 </div>
 
 <div class="content-box">
+    <div class="table-search">
+        <form method="GET" class="search-form">
+            <input type="text" name="q" class="search-input"
+                   placeholder="Search item or category&hellip;"
+                   value="<?= htmlspecialchars($q) ?>">
+            <button type="submit" class="search-btn">Search</button>
+            <?php if ($q !== ''): ?>
+                <a href="index.php" class="cancel-btn">Clear</a>
+            <?php endif; ?>
+        </form>
+    </div>
     <div class="table-wrapper">
         <table>
             <thead>

@@ -60,9 +60,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body class="login-page">
 
-    <div class="login-card">
-        <img class="logo" src="./assets/images/sbdt-logo.png" alt="SBDT Logo">
+<div>
+    <img class="logo" src="./assets/images/sbdt-logo.png" alt="SBDT Logo">
 
+    <div class="login-card">
         <h1 class="system-name">Inventory Management System</h1>
         <p class="description">Sign in to your account</p>
 
@@ -83,6 +84,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <button type="submit">Login</button>
         </form>
     </div>
+</div>
+    
     
 </body>
 </html>
