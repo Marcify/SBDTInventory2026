@@ -46,7 +46,6 @@ CREATE TABLE items (
 
 
 -- Borrowings table
-
 CREATE TABLE borrowings (
     id INT AUTO_INCREMENT PRIMARY KEY,
     reference_code VARCHAR(20) NOT NULL UNIQUE,

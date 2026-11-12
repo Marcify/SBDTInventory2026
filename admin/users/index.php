@@ -23,6 +23,10 @@ require __DIR__ . '/../../includes/layout_start.php';
     <a href="create.php" class="btn btn-maroon add-btn"><i class="bi bi-plus-lg" aria-hidden="true"></i> Add New User</a>
 </div>
 
+<?php if (($_GET['saved'] ?? '') === '1'): ?>
+    <div class="alert alert-success message success" role="alert">User updated successfully.</div>
+<?php endif; ?>
+
 <div class="card content-box border-0 shadow-sm">
     <div class="table-responsive table-wrapper">
         <table class="table table-striped table-hover align-middle mb-0">

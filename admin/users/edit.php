@@ -32,6 +32,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = $_POST['password'] ?? '';
     $confirmPassword = $_POST['confirm_password'] ?? '';
 
+    // Validate all fields first (password checks are a sub-branch,
+    // not part of the update chain).
     if ($name === '') {
         $error = 'Name is required.';
     } elseif (mb_strlen($name) > 120) {
@@ -48,25 +50,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif ($password !== $confirmPassword) {
             $error = 'Password and confirmation do not match.';
         }
-    } else {
+    }
+
+    if ($error === null) {
         // Duplicate username check (excluding this user).
         $stmt = $pdo->prepare('SELECT id FROM users WHERE username = ? AND id != ?');
         $stmt->execute([$username, $userId]);
 
         if ($stmt->fetch()) {
             $error = 'That username is already taken.';
-        } else {
-            if ($password !== '') {
-                $stmt = $pdo->prepare('UPDATE users SET name = ?, username = ?, role = ?, password = ? WHERE id = ?');
-                $stmt->execute([$name, $username, $role, password_hash($password, PASSWORD_DEFAULT), $userId]);
-            } else {
-                $stmt = $pdo->prepare('UPDATE users SET name = ?, username = ?, role = ? WHERE id = ?');
-                $stmt->execute([$name, $username, $role, $userId]);
-            }
-
-            header('Location: index.php');
-            exit();
         }
+    }
+
+    if ($error === null) {
+        if ($password !== '') {
+            $stmt = $pdo->prepare('UPDATE users SET name = ?, username = ?, role = ?, password = ? WHERE id = ?');
+            $stmt->execute([$name, $username, $role, password_hash($password, PASSWORD_DEFAULT), $userId]);
+        } else {
+            $stmt = $pdo->prepare('UPDATE users SET name = ?, username = ?, role = ? WHERE id = ?');
+            $stmt->execute([$name, $username, $role, $userId]);
+        }
+
+        header('Location: index.php?saved=1');
+        exit();
     }
 }
 

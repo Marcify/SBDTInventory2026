@@ -17,14 +17,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($name === '' || $category_id === '' || $total_stock < 1) {
         $error = 'Please fill in all fields and ensure total stock is at least 1.';
     } else {
-        // Insert the item. Available stock starts the same as total stock.
-        $sql = "INSERT INTO items (category_id, name, total_stock, available_stock) 
-                VALUES (?, ?, ?, ?)";
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute([$category_id, $name, $total_stock, $total_stock]);
+        try {
+            $pdo->beginTransaction();
 
-        header('Location: index.php');
-        exit();
+            // Insert the item. Available stock starts the same as total stock.
+            $stmt = $pdo->prepare(
+                "INSERT INTO items (category_id, name, total_stock, available_stock)
+                 VALUES (?, ?, ?, ?)"
+            );
+            $stmt->execute([$category_id, $name, $total_stock, $total_stock]);
+            $item_id = (int)$pdo->lastInsertId();
+
+            // Log the initial stock as an IN movement (same as the API).
+            $stmt = $pdo->prepare(
+                "INSERT INTO stock_movements (item_id, user_id, type, quantity, reason)
+                 VALUES (?, ?, 'IN', ?, ?)"
+            );
+            $stmt->execute([
+                $item_id,
+                $_SESSION['user_id'],
+                $total_stock,
+                'Initial stock on item creation',
+            ]);
+
+            $pdo->commit();
+
+            header('Location: index.php');
+            exit();
+        } catch (Throwable $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            $error = 'Failed to create the item. Please try again.';
+        }
     }
 }
 
