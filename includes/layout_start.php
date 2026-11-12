@@ -18,7 +18,10 @@ $active_nav = $active_nav ?? '';
         <img class="logo" src="/SBDTInventory/assets/images/sbdt-logo.png" alt="SBDT">
         <span class="brand">Inventory Management System</span>
         <div class="header-actions">
-            <span class="welcome"><?= htmlspecialchars($user['username']) ?></span>
+            <div class="user-chip" title="Logged in as <?= htmlspecialchars($user['name'] ?? $user['username']) ?>">
+                <span class="user-avatar"><?= strtoupper(mb_substr(htmlspecialchars($user['name'] ?? $user['username']), 0, 1)) ?></span>
+                <span class="user-name"><?= htmlspecialchars($user['name'] ?? $user['username']) ?></span>
+            </div>
             <form action="/SBDTInventory/logout.php" method="POST">
                 <?= csrf_field() ?>
                 <button type="submit" class="profile-button">Log out</button>
@@ -50,6 +53,8 @@ $active_nav = $active_nav ?? '';
                    class="<?= $active_nav === 'items' ? 'active' : '' ?>">Browse Items</a>
                 <a href="/SBDTInventory/dancer/borrowings/create.php"
                    class="<?= $active_nav === 'borrow' ? 'active' : '' ?>">Borrow Items</a>
+                <a href="/SBDTInventory/dancer/borrowings/index.php"
+                   class="<?= $active_nav === 'my-borrowings' ? 'active' : '' ?>">My Borrowings</a>
             <?php endif; ?>
         </aside>
 

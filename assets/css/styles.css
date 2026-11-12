@@ -6,15 +6,22 @@
 /* 1. CSS Variables and Global Styles */
 
 :root {
-    --color-background: #FAFAFA;
+    --color-background: #F7F5F2;
+    --color-surface: #FFFFFF;
+    --color-border: #E6DEDC;
     --color-gold: #E0BB20;
+    --color-gold-soft: #F5E7B8;
+    --color-orange: #E07A20;
+    --color-green: #20A020;
     --color-maroon: #841818;
-    --color-black: #000000;
+    --color-maroon-dark: #5E1010;
+    --color-black: #1F1B1B;
+    --color-muted: #6B5F5F;
     --header-height: 88px;
     --sidebar-width: 230px;
-    --color-border: #E5DCDC;
-    --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
-    --radius: 8px;
+    --shadow-card: 0 1px 2px rgba(31, 27, 27, 0.05), 0 2px 8px rgba(31, 27, 27, 0.06);
+    --radius: 10px;
+    --radius-sm: 6px;
 }
 
 * {
@@ -268,7 +275,7 @@ body > header {
 .logo {
     display: block;
     width: auto;
-    height: 58px;
+    height: 45px;
     border: 0;
     object-fit: contain;
     flex-shrink: 0;
@@ -389,6 +396,13 @@ body > header {
     margin-bottom: 14px;
 }
 
+.card-header {
+    margin: 0;
+    color: var(--color-black);
+    font-size: 14px;
+    font-weight: 700;
+}
+
 .card-icon {
     display: inline-flex;
     color: var(--color-maroon);
@@ -450,6 +464,21 @@ th {
 
 tbody tr:hover td {
     box-shadow: inset 0 -3px 0 var(--color-gold);
+}
+
+.borrowed-stock {
+    color: var(--color-green);
+    font-weight: 700;
+}
+
+.damaged-stock {
+    color: var(--color-orange);
+    font-weight: 700;
+}
+
+.lost-stock {
+    color: var(--color-maroon);
+    font-weight: 700;
 }
 
 .item-line,
@@ -1103,3 +1132,652 @@ td.status-returned {
     color: var(--color-black);
     font-weight: 700;
 }
+
+/* 17. Design polish pass (overrides earlier sections; later rules win) */
+
+/* --- Cards and panels: white surfaces on warm background --- */
+.content-box,
+.recent-container,
+.edit-panel,
+.section {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-card);
+}
+
+.summary-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-top: 4px solid var(--color-gold);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-card);
+}
+
+.password-modal-card,
+.modal-content {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+}
+
+/* --- Typography --- */
+.page-title {
+    font-size: 26px;
+    letter-spacing: -0.01em;
+}
+
+.section-title,
+.recent-container h5,
+.edit-panel h3 {
+    font-size: 16px;
+}
+
+.welcome,
+.description,
+.form-note,
+.empty-note {
+    color: var(--color-muted);
+}
+
+/* --- Sidebar --- */
+.sidebar {
+    background: linear-gradient(180deg, var(--color-maroon) 0%, var(--color-maroon-dark) 100%);
+}
+
+.sidebar a {
+    border-left: 3px solid transparent;
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    margin-right: 10px;
+    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.sidebar a:hover {
+    border-left-color: var(--color-gold);
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--color-gold);
+}
+
+.sidebar a.active,
+.layout > aside a.active {
+    background: var(--color-gold);
+    border-left-color: var(--color-gold);
+    color: var(--color-black);
+}
+
+.sidebar-title {
+    padding: 0 14px;
+    opacity: 0.85;
+}
+
+/* --- Header --- */
+.header,
+body > header {
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+    box-shadow: 0 1px 4px rgba(31, 27, 27, 0.05);
+}
+
+.brand,
+.system-name {
+    color: var(--color-maroon);
+    letter-spacing: 0.02em;
+}
+
+.profile-button {
+    border-radius: var(--radius-sm);
+}
+
+/* --- Tables: lighter, modern, scannable --- */
+th,
+td {
+    border: 0;
+    border-bottom: 1px solid var(--color-border);
+    text-align: left;
+    padding: 10px 12px;
+}
+
+th {
+    background: transparent;
+    color: var(--color-muted);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border-bottom: 2px solid var(--color-maroon);
+}
+
+tbody tr:nth-child(even) td {
+    background: rgba(132, 24, 24, 0.025);
+}
+
+tbody tr:hover td {
+    background: var(--color-gold-soft);
+    box-shadow: none;
+}
+
+.table-wrapper {
+    border-radius: var(--radius-sm);
+}
+
+/* --- Buttons --- */
+.add-btn,
+.edit-btn,
+.action-btn,
+.search-btn,
+.borrow-btn,
+.save-btn,
+.submit-btn,
+.cancel-btn,
+.remove-btn,
+.filter-bar button,
+.search-form button,
+.search-form a,
+.item-selection button,
+.btn,
+.profile-button,
+.login-card button {
+    border-radius: var(--radius-sm);
+    transition: background-color 0.15s ease, color 0.15s ease,
+        border-color 0.15s ease, transform 0.05s ease;
+}
+
+/* Secondary buttons: outline style */
+.edit-btn,
+.action-btn,
+.cancel-btn,
+.filter-link,
+.btn,
+.password-modal-actions button[type="button"],
+.item-selection button,
+button.btn[type="button"] {
+    background: var(--color-surface);
+    color: var(--color-maroon);
+}
+
+.edit-btn:hover,
+.action-btn:hover,
+.cancel-btn:hover,
+.filter-link:hover,
+.search-form a:hover,
+.item-selection button:hover,
+button.btn[type="button"]:hover {
+    background: var(--color-gold-soft);
+    color: var(--color-maroon);
+}
+
+/* Destructive buttons: stronger hover */
+.remove-btn,
+button[data-delete] {
+    background: var(--color-maroon);
+    color: var(--color-background);
+}
+
+.remove-btn:hover,
+button[data-delete]:hover {
+    background: #A02020;
+    border-color: #A02020;
+    color: var(--color-background);
+}
+
+.add-btn:active,
+.save-btn:active,
+.submit-btn:active,
+.borrow-btn:active,
+.search-btn:active {
+    transform: translateY(1px);
+}
+
+/* --- Form inputs --- */
+.form-group input,
+.form-group select,
+.form-group textarea,
+.edit-panel input,
+.edit-panel select,
+.search-input,
+.password-modal-card input {
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus,
+.edit-panel input:focus,
+.edit-panel select:focus {
+    border-color: var(--color-maroon);
+    box-shadow: 0 0 0 3px rgba(224, 187, 32, 0.25);
+    outline: none;
+}
+
+.form-group input::placeholder,
+.edit-panel input::placeholder {
+    color: var(--color-muted);
+    opacity: 0.7;
+}
+
+/* --- Messages --- */
+.message,
+.alert,
+.password-notice {
+    border-radius: var(--radius-sm);
+}
+
+.message.error,
+.password-notice.error {
+    border-left: 4px solid var(--color-maroon);
+    background: #FBEDED;
+}
+
+.message.success,
+.password-notice.success {
+    border-left: 4px solid var(--color-gold);
+    background: #FBF6E3;
+}
+
+/* --- Empty states --- */
+.empty {
+    padding: 40px 20px;
+    color: var(--color-muted);
+    font-style: italic;
+}
+
+/* --- Badges: soft pills --- */
+.badge,
+.status-active,
+.status-inactive,
+.returned {
+    border-radius: 999px;
+    padding: 3px 10px;
+}
+
+.badge-available,
+.status-active,
+.returned,
+.badge-returned {
+    background: #F5EBC8;
+    color: #7A6210;
+}
+
+.badge-unavailable,
+.status-inactive {
+    background: #F4DEDE;
+    color: var(--color-maroon);
+}
+
+.badge-borrowed,
+.badge-partial {
+    background: var(--color-surface);
+    color: var(--color-maroon);
+    border: 1px solid var(--color-maroon);
+}
+
+/* --- Login --- */
+.login-page {
+    background: linear-gradient(135deg, #F7F5F2 0%, #F0E4E4 100%);
+}
+
+.login-card {
+    border-top: 6px solid var(--color-maroon);
+    border: 1px solid var(--color-border);
+    box-shadow: 0 4px 24px rgba(31, 27, 27, 0.10);
+}
+
+/* --- Scoped motion baseline --- */
+.sidebar a,
+button,
+input,
+select,
+tbody td,
+.summary-card,
+.content-box {
+    transition-timing-function: ease;
+    transition-duration: 0.15s;
+}
+
+/* 18. Legibility pass: larger text, stronger secondary contrast */
+
+:root {
+    --color-muted: #5A4F4F;
+}
+
+body,
+button,
+input,
+select,
+textarea {
+    font-size: 15px;
+}
+
+th,
+td {
+    font-size: 14px;
+}
+
+th {
+    font-size: 12px;
+    color: #4A3F3F;
+}
+
+.form-group label,
+.edit-panel label,
+.form-label,
+.password-modal-card label {
+    font-size: 14px;
+}
+
+.badge,
+.status-active,
+.status-inactive,
+.returned {
+    font-size: 13px;
+}
+
+.message,
+.alert,
+.password-notice {
+    font-size: 14px;
+}
+
+.pagination-summary {
+    font-size: 14px;
+}
+
+.pagination-controls button,
+.pagination-controls a.page-link {
+    font-size: 14px;
+    height: 36px;
+    min-width: 38px;
+    line-height: 34px;
+}
+
+.sidebar a {
+    font-size: 15px;
+}
+
+.page-title {
+    font-size: 28px;
+}
+
+.section-title,
+.recent-container h5,
+.edit-panel h3 {
+    font-size: 18px;
+}
+
+.summary-card h6 {
+    font-size: 15px;
+}
+
+.summary-card h3 {
+    font-size: 34px;
+}
+
+.add-btn,
+.edit-btn,
+.action-btn,
+.search-btn,
+.borrow-btn,
+.save-btn,
+.submit-btn,
+.cancel-btn,
+.remove-btn,
+.filter-bar button,
+.filter-link,
+.search-form button,
+.search-form a,
+.item-selection button,
+.btn,
+.profile-button,
+.login-card button {
+    font-size: 14px;
+}
+
+/* 19. Header user chip */
+
+.user-chip {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 5px 14px 5px 5px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+}
+
+.user-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--color-maroon);
+    color: var(--color-background);
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.user-name {
+    max-width: 180px;
+    overflow: hidden;
+    color: var(--color-black);
+    font-size: 14px;
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Mobile: chip shrinks to avatar only */
+@media (max-width: 720px) {
+    .user-chip {
+        padding: 4px;
+        border: 0;
+        background: transparent;
+    }
+
+    .user-name {
+        display: none;
+    }
+}
+
+/* 19b. User chip: bolder styling */
+
+.user-chip {
+    gap: 10px;
+    padding: 4px 14px 4px 4px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    box-shadow: var(--shadow-card);
+}
+
+.user-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--color-maroon) 0%, var(--color-maroon-dark) 100%);
+    color: #FFF;
+    font-size: 15px;
+    font-weight: 700;
+    box-shadow: 0 0 0 2px var(--color-surface), 0 0 0 4px var(--color-gold);
+}
+
+.user-chip:hover .user-name {
+    color: var(--color-maroon);
+}
+
+.user-name {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+}
+
+/* 20. Symmetry and alignment pass */
+
+/* Consistent vertical rhythm: standalone titles get bottom spacing,
+   titles inside toolbars stay flat so the flex row stays aligned. */
+.page-title {
+    margin: 0 0 16px;
+}
+
+.toolbar .page-title {
+    margin: 0;
+}
+
+.toolbar {
+    margin-bottom: 18px;
+}
+
+/* Content column: uses the full available width beside the sidebar */
+
+/* Info cards: uniform internal structure everywhere they appear */
+.summary-card {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.summary-card .card-heading {
+    margin-bottom: 10px;
+}
+
+.summary-value {
+    margin: 0;
+    color: var(--color-maroon);
+    font-size: 24px;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+
+.summary-value--soft {
+    font-weight: 400;
+    color: var(--color-muted);
+}
+
+.summary-card .badge {
+    margin-top: 4px;
+}
+
+/* Table row controls: aligned single-line rows instead of stacked blocks */
+.item-line,
+.inline-form {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.item-line select,
+.inline-form select {
+    flex: 1 1 auto;
+    width: auto;
+    min-width: 180px;
+}
+
+.item-line input[type="number"],
+.inline-form input[type="number"],
+.input-qty {
+    width: 84px;
+    flex-shrink: 0;
+    text-align: center;
+}
+
+.item-line .remove-btn {
+    flex-shrink: 0;
+}
+
+.add-row-btn {
+    margin-top: 14px;
+}
+
+/* Form rows in the borrow form breathe evenly */
+#item-rows .item-row {
+    margin-bottom: 10px;
+}
+
+/* Mobile: controls wrap gracefully instead of squeezing */
+@media (max-width: 720px) {
+    .item-line,
+    .inline-form {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .item-line select,
+    .inline-form select {
+        min-width: 0;
+        width: 100%;
+    }
+
+    .item-line input[type="number"],
+    .inline-form input[type="number"],
+    .input-qty {
+        width: 100%;
+    }
+}
+
+/* 21. Return workflow: progress bars */
+
+.progress {
+    min-width: 140px;
+}
+
+.progress-track {
+    height: 8px;
+    overflow: hidden;
+    background: #EFE7E4;
+    border-radius: 999px;
+}
+
+.progress-fill {
+    height: 100%;
+    background: var(--color-gold);
+    border-radius: 999px;
+    transition: width 0.3s ease;
+}
+
+.progress-fill.progress-done {
+    background: #4C8C4A;
+}
+
+.progress-label {
+    margin-top: 5px;
+    color: var(--color-muted);
+    font-size: 12px;
+}
+
+@media (max-width: 720px) {
+    .progress {
+        min-width: 0;
+    }
+}
+
+/* 22. Muted rows for returned borrowings */
+
+tr.row-returned td {
+    color: var(--color-muted);
+    opacity: 0.75;
+}
+
+tr.row-returned .quantity,
+tr.row-returned .badge {
+    opacity: 1;
+}
+
+/* 23. Return history list (dancer borrowing view) */
+
+.return-history .item-line {
+    flex-wrap: nowrap;
+    gap: 6px;
+    font-size: 13px;
+}
+
+.return-history .return-date {
+    color: var(--color-muted);
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+

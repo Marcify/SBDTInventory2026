@@ -16,6 +16,7 @@ function is_logged_in() {
 function current_user() {
     return [
         'id' => $_SESSION['user_id'] ?? null,
+        'name' => $_SESSION['name'] ?? null,
         'username' => $_SESSION['username'] ?? null,
         'role' => $_SESSION['role'] ?? null
     ];
@@ -36,7 +37,7 @@ function require_login() {
     global $pdo;
 
     $stmt = $pdo->prepare(
-        'SELECT id, username, role
+        'SELECT id, name, username, role
          FROM users
          WHERE id = ? AND is_active = TRUE'
     );
@@ -54,6 +55,7 @@ function require_login() {
     // Keep the session in sync with the database (e.g., after a role change).
     $_SESSION['username'] = $user['username'];
     $_SESSION['role'] = $user['role'];
+    $_SESSION['name'] = $user['name'];
 }
 
 /**

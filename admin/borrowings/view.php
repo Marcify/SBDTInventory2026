@@ -174,19 +174,25 @@ require __DIR__ . '/../../includes/layout_start.php';
 <div class="summary-container">
     <div class="summary-card">
         <div class="card-heading">
-            <h6>Dancer</h6>
+            <span class="card-header">Dancer</span>
         </div>
-        <h6 style="font-size: 18px;"><?= htmlspecialchars($borrowing['user_name']) ?></h6>
+        <span class="summary-value"><?= htmlspecialchars($borrowing['user_name']) ?></span>
     </div>
     <div class="summary-card">
         <div class="card-heading">
-            <h6>Reason</h6>
+            <span class="card-header">Reason</span>
         </div>
-        <h6 style="font-size: 14px; font-weight: 400;"><?= htmlspecialchars($borrowing['reason']) ?></h6>
+        <span class="summary-value summary-value--soft"><?= htmlspecialchars($borrowing['reason']) ?></span>
     </div>
     <div class="summary-card">
         <div class="card-heading">
-            <h6>Status</h6>
+            <span class="card-header">Borrowed</span>
+        </div>
+        <span class="summary-value summary-value--soft"><?= date('M d, Y h:i A', strtotime($borrowing['borrowed_at'])) ?></span>
+    </div>
+    <div class="summary-card">
+        <div class="card-heading">
+            <span class="card-header">Status</span>
         </div>
         <span class="badge <?= $borrowing['status'] === 'returned' ? 'badge-returned' : ($borrowing['status'] === 'partial' ? 'badge-partial' : 'badge-borrowed') ?>">
             <?= ucfirst($borrowing['status']) ?>
@@ -204,9 +210,9 @@ require __DIR__ . '/../../includes/layout_start.php';
             <thead>
                 <tr>
                     <th>Item</th>
-                    <th>Qty Borrowed</th>
-                    <th>Qty Returned</th>
-                    <th>Still Out</th>
+                    <th>Borrowed</th>
+                    <th>Returned</th>
+                    <th>Progress</th>
                     <th>Process Return</th>
                 </tr>
             </thead>
@@ -218,13 +224,23 @@ require __DIR__ . '/../../includes/layout_start.php';
                         <td><?= htmlspecialchars($d['item_name']) ?></td>
                         <td class="quantity"><?= $d['quantity_borrowed'] ?></td>
                         <td><?= $d['quantity_returned'] ?></td>
-                        <td class="quantity"><?= $remaining ?></td>
+                        <td>
+                            <?php $pct = $d['quantity_borrowed'] > 0 ? (int)round($d['quantity_returned'] / $d['quantity_borrowed'] * 100) : 0; ?>
+                            <div class="progress">
+                                <div class="progress-track">
+                                    <div class="progress-fill <?= $pct >= 100 ? 'progress-done' : '' ?>" style="width: <?= $pct ?>%;"></div>
+                                </div>
+                                <div class="progress-label">
+                                    <?= $pct ?>% &middot; <?= $remaining ?> still out
+                                </div>
+                            </div>
+                        </td>
                         <td>
                             <?php if ($remaining > 0): ?>
                                 <form method="POST" class="inline-form">
                                     <?= csrf_field() ?>
                                     <input type="hidden" name="detail_id" value="<?= $d['id'] ?>">
-                                    <input type="number" name="quantity" min="1" max="<?= $remaining ?>" value="<?= $remaining ?>" required style="width: 70px;">
+                                    <input type="number" name="quantity" min="1" max="<?= $remaining ?>" value="<?= $remaining ?>" required class="input-qty">
                                     <select name="condition" required>
                                         <option value="good">Good</option>
                                         <option value="damaged">Damaged</option>

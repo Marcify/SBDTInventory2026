@@ -200,9 +200,9 @@ require __DIR__ . '/../../includes/layout_start.php';
             </div>
         </div>
 
-        <button type="button" id="add-row" class="add-btn" style="margin-top: 10px;">+ Add another item</button>
+        <button type="button" id="add-row" class="add-btn add-row-btn">+ Add another item</button>
 
-        <div class="form-group" style="margin-top: 20px;">
+        <div class="form-group form-group-spaced">
             <label class="form-label" for="reason">Reason for Borrowing</label>
             <input type="text" id="reason" name="reason" required placeholder="e.g., Practice for Recital">
         </div>

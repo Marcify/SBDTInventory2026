@@ -14,7 +14,7 @@ require __DIR__ . '/../includes/layout_start.php';
 ?>
 
 <h1 class="page-title">Admin Dashboard</h1>
-<p class="welcome">Welcome back, <strong><?= htmlspecialchars($user['username']) ?></strong>!</p>
+<p class="welcome">Welcome back, <strong><?= htmlspecialchars($user['name'] ?? $user['username']) ?></strong>!</p>
 
 <div class="summary-container">
     <div class="summary-card">
