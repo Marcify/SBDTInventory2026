@@ -72,3 +72,166 @@ route('POST', '/categories', function () {
         ],
     ], 201);
 });
+
+// Rename a category.
+route('PATCH', '/categories/{id}', function ($id) {
+    api_require_admin();
+    api_require_csrf();
+
+    $categoryId = filter_var(
+        $id,
+        FILTER_VALIDATE_INT,
+        ['options' => ['min_range' => 1]]
+    );
+
+    if ($categoryId === false) {
+        json_validation([
+            'id' => 'Category ID must be a positive integer',
+        ]);
+    }
+
+    $data = request_body();
+
+    $unknownFields = array_diff(array_keys($data), ['name']);
+
+    if ($unknownFields) {
+        json_validation([
+            'fields' => 'Unsupported fields: ' . implode(', ', $unknownFields),
+        ]);
+    }
+
+    $name = $data['name'] ?? null;
+
+    if (!is_string($name) || trim($name) === '') {
+        json_validation([
+            'name' => 'Category name is required and must be a string',
+        ]);
+    }
+
+    $name = trim($name);
+
+    $length = preg_match_all('/./us', $name);
+
+    if ($length === false || $length > 100) {
+        json_validation([
+            'name' => 'Category name must not exceed 100 characters',
+        ]);
+    }
+
+    global $pdo;
+
+    try {
+        $pdo->beginTransaction();
+
+        $stmt = $pdo->prepare(
+            'SELECT id FROM categories WHERE id = ? FOR UPDATE'
+        );
+
+        $stmt->execute([$categoryId]);
+
+        if (!$stmt->fetch()) {
+            $pdo->rollBack();
+            json_error('Category not found', 404);
+        }
+
+        try {
+            $stmt = $pdo->prepare(
+                'UPDATE categories SET name = ? WHERE id = ?'
+            );
+
+            $stmt->execute([$name, $categoryId]);
+        } catch (PDOException $e) {
+            if ((int)($e->errorInfo[1] ?? 0) === 1062) {
+                $pdo->rollBack();
+                json_error('A category with that name already exists', 409);
+            }
+
+            throw $e;
+        }
+
+        $pdo->commit();
+    } catch (Throwable $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+
+        throw $e;
+    }
+
+    json_success([
+        'category' => [
+            'id' => $categoryId,
+            'name' => $name,
+        ],
+    ]);
+});
+
+// Delete a category. Rejected if any item still references it.
+route('DELETE', '/categories/{id}', function ($id) {
+    api_require_admin();
+    api_require_csrf();
+
+    $categoryId = filter_var(
+        $id,
+        FILTER_VALIDATE_INT,
+        ['options' => ['min_range' => 1]]
+    );
+
+    if ($categoryId === false) {
+        json_validation([
+            'id' => 'Category ID must be a positive integer',
+        ]);
+    }
+
+    global $pdo;
+
+    try {
+        $pdo->beginTransaction();
+
+        // Lock the row so an item cannot be assigned to this
+        // category between the usage check and the delete.
+        $stmt = $pdo->prepare(
+            'SELECT id FROM categories WHERE id = ? FOR UPDATE'
+        );
+
+        $stmt->execute([$categoryId]);
+
+        if (!$stmt->fetch()) {
+            $pdo->rollBack();
+            json_error('Category not found', 404);
+        }
+
+        $stmt = $pdo->prepare(
+            'SELECT COUNT(*) FROM items WHERE category_id = ?'
+        );
+
+        $stmt->execute([$categoryId]);
+        $itemCount = (int)$stmt->fetchColumn();
+
+        if ($itemCount > 0) {
+            $pdo->rollBack();
+
+            json_error(
+                'Category is in use by ' . $itemCount . ' item(s) and cannot be deleted',
+                409,
+                ['item_count' => $itemCount]
+            );
+        }
+
+        $stmt = $pdo->prepare(
+            'DELETE FROM categories WHERE id = ?'
+        );
+
+        $stmt->execute([$categoryId]);
+
+        $pdo->commit();
+    } catch (Throwable $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+
+        throw $e;
+    }
+
+    json_success(['message' => 'Category deleted']);
+});

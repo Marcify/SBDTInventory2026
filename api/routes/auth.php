@@ -18,12 +18,16 @@ route('POST', '/auth/login', function () {
     }
 
     global $pdo;
-    $stmt = $pdo->prepare("SELECT * FROM users WHERE username = ? AND is_active = TRUE");
+    $stmt = $pdo->prepare("SELECT * FROM users WHERE username = ?");
     $stmt->execute([$username]);
     $user = $stmt->fetch();
 
     if (!$user || !password_verify($password, $user['password'])) {
         json_error('Invalid username or password', 401);
+    }
+
+    if (!(bool)$user['is_active']) {
+        json_error('This account has been deactivated. Contact an administrator.', 403);
     }
 
     session_regenerate_id(true);

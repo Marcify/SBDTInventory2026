@@ -133,7 +133,11 @@ $totalStock = $pdo->query("SELECT SUM(total_stock) FROM items WHERE is_active = 
         <a href="borrowings/index.php">Borrowings & Returns</a>
         <a href="stock_movements/index.php">Stock History</a>
         <a href="users/index.php">Manage Users</a>
-        <a href="/SBDTInventory/logout.php" class="logout">Log out</a>
+        <form action="/SBDTInventory/logout.php" method="POST" style="display:inline;">
+            <?= csrf_field() ?>
+            <button type="submit" class="logout">Log out</button>
+        </form>
+
     </div>
 
     <!-- Main Content -->

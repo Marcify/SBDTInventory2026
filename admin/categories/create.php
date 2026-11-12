@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../../includes/auth.php';
 require_admin();
+require_csrf();
 
 $error = '';
 
@@ -77,6 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <?php endif; ?>
 
     <form method="POST">
+        <?= csrf_field() ?>
         <div class="form-group">
             <label>Category Name</label>
             <input type="text" name="name" required placeholder="e.g. Costumes, Props, Shoes">

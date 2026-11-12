@@ -69,7 +69,10 @@ $user = current_user();
         <li><a href="borrowings/create.php">Borrow an Item</a></li>
     </ul>
 
-    <a href="/SBDTInventory/logout.php" class="logout">Log out</a>
+    <form action="/SBDTInventory/logout.php" method="POST" style="margin-top: 30px;">
+        <?= csrf_field() ?>
+        <button type="submit" class="logout">Log out</button>
+    </form>
 </body>
 
 </html>

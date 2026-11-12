@@ -108,6 +108,7 @@ $items = $stmt->fetchAll();
 
                             <!-- Archive/Unarchive button -->
                             <form action="toggle_status.php" method="POST" style="display:inline;">
+                                <?= csrf_field() ?>
                                 <input type="hidden" name="id" value="<?= $item['id'] ?>">
                                 <input type="hidden" name="current_status" value="<?= $item['is_active'] ?>">
                                 <button type="submit" class="btn btn-danger">

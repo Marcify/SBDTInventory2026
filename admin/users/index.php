@@ -61,6 +61,7 @@ $users = $stmt->fetchAll();
                         <!-- Prevent admin from deactivating themselves -->
                         <?php if ($u['id'] != $_SESSION['user_id']): ?>
                             <form action="toggle_status.php" method="POST" style="display:inline;">
+                                <?= csrf_field() ?>
                                 <input type="hidden" name="id" value="<?= $u['id'] ?>">
                                 <input type="hidden" name="current_status" value="<?= $u['is_active'] ?>">
                                 <button type="submit" class="btn <?= $u['is_active'] ? 'btn-danger' : 'btn-success' ?>">

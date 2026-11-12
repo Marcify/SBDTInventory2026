@@ -1,4 +1,9 @@
 <?php
+
+if (PHP_SAPI !== 'cli') {
+    exit("This script may only be run from the command line.\n");
+}
+
 require_once '../config/database.php';
 
 foreach ([['Admin User','admin','Admin123!','admin'],['Dancer User','dancer','Dancer123!','dancer']] as [$name,$username,$password,$role]) {

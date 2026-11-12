@@ -8,5 +8,6 @@ require_once __DIR__ . '/routes/categories.php';
 require_once __DIR__ . '/routes/items.php';
 require_once __DIR__ . '/routes/borrowings.php';
 require_once __DIR__ . '/routes/stock_movements.php';
+require_once __DIR__ . '/routes/users.php';
 
 dispatch();

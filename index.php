@@ -21,28 +21,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($username === '' || $password === '') {
         $error = 'Please enter both username and password.';
     } else {
-        $stmt = $pdo->prepare("SELECT * FROM users WHERE username = ? AND is_active = TRUE");
+        $stmt = $pdo->prepare("SELECT * FROM users WHERE username = ?");
         $stmt->execute([$username]);
         $user = $stmt->fetch();
 
         // Verify password using password_verify()
         if ($user && password_verify($password, $user['password'])) {
-            // Regenerate session ID and store user_id, username, role
-            session_regenerate_id(true);
-            $_SESSION['user_id'] = $user['id'];
-            $_SESSION['username'] = $user['username'];
-            $_SESSION['role'] = $user['role'];
-
-            if ($user['role'] === 'admin') {
-                header('Location: /SBDTInventory/admin/dashboard.php');
+            if (!$user['is_active']) {
+                $error = "This account has been deactivated. Contact an administrator.";
             } else {
-                header('Location: /SBDTInventory/dancer/dashboard.php');
+                session_regenerate_id(true);
+                $_SESSION['user_id'] = $user['id'];
+                $_SESSION['username'] = $user['username'];
+                $_SESSION['role'] = $user['role'];
+
+                if ($user['role'] === 'admin') {
+                    header('Location: /SBDTInventory/admin/dashboard.php');
+                } else {
+                    header('Location: /SBDTInventory/dancer/dashboard.php');
+                }
+                exit();
             }
-
-            exit();
+        } else {
+            $error = 'Invalid username or password.';
         }
-
-        $error = 'Invalid username or password.';
     }
 }
 ?>

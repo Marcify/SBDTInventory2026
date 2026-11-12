@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../../includes/auth.php';
 require_dancer();
+require_csrf();
 
 $user = current_user();
 
@@ -19,45 +20,66 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($item_id === '' || $quantity < 1 || $reason === '') {
         $error = 'Please fill in all fields and ensure quantity is at least 1.';
     } else {
-        // Check if enough stock exists
-        $stmt = $pdo->prepare("SELECT * FROM items WHERE id = ?");
-        $stmt->execute([$item_id]);
-        $item = $stmt->fetch();
+        try {
+            // Transaction FIRST, so the stock check and the deduction
+            // happen atomically against a locked row.
+            $pdo->beginTransaction();
 
-        if ($quantity > $item['available_stock']) {
-            $error = 'Not enough stock available. Only ' . $item['available_stock'] . ' left.';
-        } else {
-            try {
-                // Use a transaction so if one thing fails, everything is cancelled
-                $pdo->beginTransaction();
+            // Lock the item row; concurrent borrowers wait here.
+            $stmt = $pdo->prepare(
+                "SELECT id, name, available_stock, is_active
+                 FROM items
+                 WHERE id = ?
+                 FOR UPDATE"
+            );
+            $stmt->execute([$item_id]);
+            $item = $stmt->fetch();
 
-                // 1. Create the reference code (e.g., BRW-2026-0001)
-                $reference_code = 'BRW-' . date('Y') . '-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
+            if (!$item || !(bool)$item['is_active']) {
+                $pdo->rollBack();
+                $error = 'That item is not available for borrowing.';
+            } elseif ($quantity > (int)$item['available_stock']) {
+                $pdo->rollBack();
+                $error = 'Not enough stock available. Only ' . (int)$item['available_stock'] . ' left.';
+            } else {
+                // Reference code (unique, 20 chars max)
+                $reference_code = 'BRW-' . date('Y') . '-' . str_pad(random_int(1, 9999), 4, '0', STR_PAD_LEFT);
 
-                // 2. Insert the main borrowing record
                 $stmt = $pdo->prepare("INSERT INTO borrowings (reference_code, user_id, reason) VALUES (?, ?, ?)");
                 $stmt->execute([$reference_code, $user['id'], $reason]);
                 $borrowing_id = $pdo->lastInsertId();
 
-                // 3. Insert the borrowing detail (the specific item)
                 $stmt = $pdo->prepare("INSERT INTO borrowing_details (borrowing_id, item_id, quantity_borrowed) VALUES (?, ?, ?)");
                 $stmt->execute([$borrowing_id, $item_id, $quantity]);
 
-                // 4. Deduct from available stock and add to borrowed stock
-                $stmt = $pdo->prepare("UPDATE items SET available_stock = available_stock - ?, borrowed_stock = borrowed_stock + ? WHERE id = ?");
-                $stmt->execute([$quantity, $quantity, $item_id]);
+                // Conditional update: only succeeds if stock is still sufficient.
+                $stmt = $pdo->prepare(
+                    "UPDATE items
+                     SET available_stock = available_stock - ?,
+                         borrowed_stock = borrowed_stock + ?
+                     WHERE id = ?
+                       AND is_active = TRUE
+                       AND available_stock >= ?"
+                );
+                $stmt->execute([$quantity, $quantity, $item_id, $quantity]);
 
-                // 5. Log the stock movement
-                $move_reason = "Borrowed by " . $user['username'] . " - " . $reference_code;
-                $stmt = $pdo->prepare("INSERT INTO stock_movements (item_id, user_id, type, quantity, reason) VALUES (?, ?, 'OUT', ?, ?)");
-                $stmt->execute([$item_id, $user['id'], $quantity, $move_reason]);
+                if ($stmt->rowCount() !== 1) {
+                    $pdo->rollBack();
+                    $error = 'Stock changed while processing. Please try again.';
+                } else {
+                    $move_reason = "Borrowed by " . $user['username'] . " - " . $reference_code;
+                    $stmt = $pdo->prepare("INSERT INTO stock_movements (item_id, user_id, type, quantity, reason) VALUES (?, ?, 'OUT', ?, ?)");
+                    $stmt->execute([$item_id, $user['id'], $quantity, $move_reason]);
 
-                $pdo->commit();
-                $success = "Successfully borrowed! Reference Code: " . $reference_code;
-            } catch (Exception $e) {
-                $pdo->rollBack();
-                $error = 'Something went wrong while borrowing. Please try again.';
+                    $pdo->commit();
+                    $success = "Successfully borrowed! Reference Code: " . $reference_code;
+                }
             }
+        } catch (Throwable $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            $error = 'Something went wrong while borrowing. Please try again.';
         }
     }
 }
@@ -127,6 +149,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <?php endif; ?>
 
     <form method="POST">
+        <?= csrf_field() ?>
         <div class="form-group">
             <label>Select Item</label>
             <select name="item_id" required>

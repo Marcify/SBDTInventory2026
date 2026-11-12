@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../../includes/auth.php';
 require_admin();
+require_csrf();
 
 // Fetch categories for the dropdown
 $stmt = $pdo->query("SELECT * FROM categories ORDER BY name ASC");
@@ -83,6 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <?php endif; ?>
 
     <form method="POST">
+        <?= csrf_field() ?>
         <div class="form-group">
             <label>Item Name</label>
             <input type="text" name="name" required>
