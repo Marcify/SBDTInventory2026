@@ -13,73 +13,152 @@ $error = '';
 $success = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $item_id = $_POST['item_id'] ?? '';
-    $quantity = (int)($_POST['quantity'] ?? 0);
     $reason = trim($_POST['reason'] ?? '');
 
-    if ($item_id === '' || $quantity < 1 || $reason === '') {
-        $error = 'Please fill in all fields and ensure quantity is at least 1.';
+    // Rows arrive as parallel arrays: item_id[], quantity[].
+    $itemIds = is_array($_POST['item_id'] ?? null) ? $_POST['item_id'] : [];
+    $quantities = is_array($_POST['quantity'] ?? null) ? $_POST['quantity'] : [];
+
+    $lines = [];
+    $lineErrors = [];
+
+    // Ignore trailing empty rows the browser may submit.
+    $rowCount = max(count($itemIds), count($quantities));
+
+    if ($rowCount > 20) {
+        $error = 'A borrowing may contain at most 20 items.';
     } else {
-        try {
-            // Transaction FIRST, so the stock check and the deduction
-            // happen atomically against a locked row.
-            $pdo->beginTransaction();
+        $seenItemIds = [];
 
-            // Lock the item row; concurrent borrowers wait here.
-            $stmt = $pdo->prepare(
-                "SELECT id, name, available_stock, is_active
-                 FROM items
-                 WHERE id = ?
-                 FOR UPDATE"
-            );
-            $stmt->execute([$item_id]);
-            $item = $stmt->fetch();
+        for ($i = 0; $i < $rowCount; $i++) {
+            $itemId = trim((string)($itemIds[$i] ?? ''));
+            $quantity = (int)($quantities[$i] ?? 0);
 
-            if (!$item || !(bool)$item['is_active']) {
-                $pdo->rollBack();
-                $error = 'That item is not available for borrowing.';
-            } elseif ($quantity > (int)$item['available_stock']) {
-                $pdo->rollBack();
-                $error = 'Not enough stock available. Only ' . (int)$item['available_stock'] . ' left.';
-            } else {
-                // Reference code (unique, 20 chars max)
-                $reference_code = 'BRW-' . date('Y') . '-' . str_pad(random_int(1, 9999), 4, '0', STR_PAD_LEFT);
+            // Skip fully empty rows (e.g., an added row left blank).
+            if ($itemId === '' && $quantity === 0) {
+                continue;
+            }
 
-                $stmt = $pdo->prepare("INSERT INTO borrowings (reference_code, user_id, reason) VALUES (?, ?, ?)");
-                $stmt->execute([$reference_code, $user['id'], $reason]);
-                $borrowing_id = $pdo->lastInsertId();
+            if ($itemId === '' || !ctype_digit($itemId) || (int)$itemId < 1) {
+                $lineErrors[] = 'Row ' . ($i + 1) . ': please choose an item.';
+                continue;
+            }
 
-                $stmt = $pdo->prepare("INSERT INTO borrowing_details (borrowing_id, item_id, quantity_borrowed) VALUES (?, ?, ?)");
-                $stmt->execute([$borrowing_id, $item_id, $quantity]);
+            if ($quantity < 1) {
+                $lineErrors[] = 'Row ' . ($i + 1) . ': quantity must be at least 1.';
+                continue;
+            }
 
-                // Conditional update: only succeeds if stock is still sufficient.
+            $itemId = (int)$itemId;
+
+            if (isset($seenItemIds[$itemId])) {
+                $lineErrors[] = 'Row ' . ($i + 1) . ': that item is already in the list — combine the quantities instead.';
+                continue;
+            }
+
+            $seenItemIds[$itemId] = true;
+            $lines[] = ['item_id' => $itemId, 'quantity' => $quantity];
+        }
+
+        if ($lineErrors) {
+            $error = implode(' ', $lineErrors);
+        } elseif (!$lines) {
+            $error = 'Add at least one item to borrow.';
+        } elseif ($reason === '') {
+            $error = 'Please enter a reason for borrowing.';
+        } else {
+            try {
+                $pdo->beginTransaction();
+
+                // Sort lines by item ID for consistent lock ordering.
+                usort($lines, static fn(array $a, array $b): int => $a['item_id'] <=> $b['item_id']);
+
+                // Lock every requested item row up front.
+                $placeholders = implode(', ', array_fill(0, count($lines), '?'));
                 $stmt = $pdo->prepare(
-                    "UPDATE items
-                     SET available_stock = available_stock - ?,
-                         borrowed_stock = borrowed_stock + ?
-                     WHERE id = ?
-                       AND is_active = TRUE
-                       AND available_stock >= ?"
+                    "SELECT id, name, available_stock, is_active
+                     FROM items
+                     WHERE id IN ($placeholders)
+                     FOR UPDATE"
                 );
-                $stmt->execute([$quantity, $quantity, $item_id, $quantity]);
+                $stmt->execute(array_column($lines, 'item_id'));
 
-                if ($stmt->rowCount() !== 1) {
-                    $pdo->rollBack();
-                    $error = 'Stock changed while processing. Please try again.';
-                } else {
-                    $move_reason = "Borrowed by " . $user['username'] . " - " . $reference_code;
-                    $stmt = $pdo->prepare("INSERT INTO stock_movements (item_id, user_id, type, quantity, reason) VALUES (?, ?, 'OUT', ?, ?)");
-                    $stmt->execute([$item_id, $user['id'], $quantity, $move_reason]);
-
-                    $pdo->commit();
-                    $success = "Successfully borrowed! Reference Code: " . $reference_code;
+                $lockedItems = [];
+                foreach ($stmt->fetchAll() as $row) {
+                    $lockedItems[(int)$row['id']] = $row;
                 }
+
+                // Validate every line against the locked rows.
+                $stockProblems = [];
+
+                foreach ($lines as $line) {
+                    $item = $lockedItems[$line['item_id']] ?? null;
+
+                    if (!$item || !(bool)$item['is_active']) {
+                        $stockProblems[] = htmlspecialchars($item['name'] ?? ('Item #' . $line['item_id']))
+                            . ' is not available for borrowing.';
+                    } elseif ($line['quantity'] > (int)$item['available_stock']) {
+                        $stockProblems[] = 'Only ' . (int)$item['available_stock']
+                            . ' of ' . htmlspecialchars($item['name']) . ' available.';
+                    }
+                }
+
+                if ($stockProblems) {
+                    $pdo->rollBack();
+                    $error = 'Could not borrow: ' . implode(' ', $stockProblems);
+                } else {
+                    $reference_code = 'BRW-' . date('Y') . '-' . str_pad(random_int(1, 9999), 4, '0', STR_PAD_LEFT);
+
+                    $stmt = $pdo->prepare("INSERT INTO borrowings (reference_code, user_id, reason) VALUES (?, ?, ?)");
+                    $stmt->execute([$reference_code, $user['id'], $reason]);
+                    $borrowing_id = $pdo->lastInsertId();
+
+                    $detailStmt = $pdo->prepare("INSERT INTO borrowing_details (borrowing_id, item_id, quantity_borrowed) VALUES (?, ?, ?)");
+                    $stockStmt = $pdo->prepare(
+                        "UPDATE items
+                         SET available_stock = available_stock - ?,
+                             borrowed_stock = borrowed_stock + ?
+                         WHERE id = ?
+                           AND is_active = TRUE
+                           AND available_stock >= ?"
+                    );
+                    $movementStmt = $pdo->prepare(
+                        "INSERT INTO stock_movements (item_id, user_id, type, quantity, reason)
+                         VALUES (?, ?, 'OUT', ?, ?)"
+                    );
+
+                    $lineCount = count($lines);
+
+                    foreach ($lines as $line) {
+                        $detailStmt->execute([$borrowing_id, $line['item_id'], $line['quantity']]);
+
+                        $stockStmt->execute([$line['quantity'], $line['quantity'], $line['item_id'], $line['quantity']]);
+
+                        if ($stockStmt->rowCount() !== 1) {
+                            $pdo->rollBack();
+                            $error = 'Stock changed while processing. Please try again.';
+                            break;
+                        }
+
+                        $movementStmt->execute([
+                            $line['item_id'],
+                            $user['id'],
+                            $line['quantity'],
+                            "Borrowed by " . $user['username'] . " - " . $reference_code,
+                        ]);
+                    }
+
+                    if (!$error) {
+                        $pdo->commit();
+                        $success = "Successfully borrowed $lineCount item line(s)! Reference Code: " . $reference_code;
+                    }
+                }
+            } catch (Throwable $e) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                $error = 'Something went wrong while borrowing. Please try again.';
             }
-        } catch (Throwable $e) {
-            if ($pdo->inTransaction()) {
-                $pdo->rollBack();
-            }
-            $error = 'Something went wrong while borrowing. Please try again.';
         }
     }
 }
@@ -148,24 +227,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <p class="success"><?= htmlspecialchars($success) ?></p>
     <?php endif; ?>
 
-    <form method="POST">
+    <form method="POST" id="borrow-form">
         <?= csrf_field() ?>
-        <div class="form-group">
-            <label>Select Item</label>
-            <select name="item_id" required>
-                <option value="">-- Choose an item --</option>
-                <?php foreach ($items as $item): ?>
-                    <option value="<?= $item['id'] ?>">
-                        <?= htmlspecialchars($item['name']) ?> (<?= $item['available_stock'] ?> available)
-                    </option>
-                <?php endforeach; ?>
-            </select>
+
+        <div id="item-rows">
+            <div class="item-row" style="margin-bottom: 10px;">
+                <label style="display:block; font-weight:bold;">Item &amp; Quantity</label>
+                <select name="item_id[]" required style="width: 300px; padding: 8px;">
+                    <option value="">-- Choose an item --</option>
+                    <?php foreach ($items as $item): ?>
+                        <option value="<?= $item['id'] ?>">
+                            <?= htmlspecialchars($item['name']) ?> (<?= $item['available_stock'] ?> available)
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+                <input type="number" name="quantity[]" min="1" placeholder="Qty" required style="width: 80px; padding: 8px;">
+                <button type="button" class="remove-row" style="padding: 8px 10px;">Remove</button>
+            </div>
         </div>
 
-        <div class="form-group">
-            <label>Quantity</label>
-            <input type="number" name="quantity" min="1" required>
-        </div>
+        <button type="button" id="add-row" style="padding: 8px 12px; margin-bottom: 15px;">+ Add another item</button>
 
         <div class="form-group">
             <label>Reason for Borrowing</label>
@@ -174,6 +255,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <button type="submit">Submit Borrow Request</button>
     </form>
+
+    <script>
+        (function () {
+            var container = document.getElementById('item-rows');
+            var addBtn = document.getElementById('add-row');
+
+            function wireRemove(row) {
+                row.querySelector('.remove-row').addEventListener('click', function () {
+                    // Keep at least one row on the page.
+                    if (container.children.length > 1) {
+                        row.remove();
+                    }
+                });
+            }
+
+            addBtn.addEventListener('click', function () {
+                var first = container.querySelector('.item-row');
+                var clone = first.cloneNode(true);
+
+                // Reset the cloned row's values.
+                clone.querySelector('select').value = '';
+                clone.querySelector('input').value = '';
+
+                container.appendChild(clone);
+                wireRemove(clone);
+            });
+
+            wireRemove(container.querySelector('.item-row'));
+        })();
+    </script>
 </body>
 
 </html>
