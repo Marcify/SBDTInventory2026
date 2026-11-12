@@ -5,26 +5,59 @@ route('POST', '/borrowings', function () {
     $user = api_require_dancer();
     api_require_csrf();
 
-    $itemId = body('item_id');
-    $quantity = body('quantity');
+    $rawItems = body('items');
     $reason = body('reason');
 
     $errors = [];
 
-    if (
-        !is_int($itemId) ||
-        $itemId < 1 ||
-        $itemId > 2147483647
-    ) {
-        $errors['item_id'] = 'Item ID must be a positive integer';
+    // items must be a list of {item_id, quantity} objects, 1-20 lines.
+    if (!is_array($rawItems) || array_is_list($rawItems)) {
+        $items = is_array($rawItems) ? $rawItems : [];
+    } else {
+        $errors['items'] = 'Items must be an array of {item_id, quantity} objects';
+        $items = [];
     }
 
-    if (
-        !is_int($quantity) ||
-        $quantity < 1 ||
-        $quantity > 2147483647
-    ) {
-        $errors['quantity'] = 'Quantity must be a positive integer';
+    if (is_array($rawItems) && array_is_list($rawItems) && count($rawItems) > 20) {
+        $errors['items'] = 'A borrowing may contain at most 20 items';
+    }
+
+    $lines = [];
+    $seenItemIds = [];
+
+    foreach ($items as $index => $line) {
+        $lineItemId = is_array($line) ? ($line['item_id'] ?? null) : null;
+        $lineQty = is_array($line) ? ($line['quantity'] ?? null) : null;
+
+        if (
+            !is_int($lineItemId) ||
+            $lineItemId < 1 ||
+            $lineItemId > 2147483647
+        ) {
+            $errors["items.$index.item_id"] = 'Item ID must be a positive integer';
+            continue;
+        }
+
+        if (
+            !is_int($lineQty) ||
+            $lineQty < 1 ||
+            $lineQty > 2147483647
+        ) {
+            $errors["items.$index.quantity"] = 'Quantity must be a positive integer';
+            continue;
+        }
+
+        if (isset($seenItemIds[$lineItemId])) {
+            $errors["items.$index.item_id"] = 'Duplicate item: combine quantities into one line';
+            continue;
+        }
+
+        $seenItemIds[$lineItemId] = true;
+        $lines[] = ['item_id' => $lineItemId, 'quantity' => $lineQty];
+    }
+
+    if (!$lines && !isset($errors['items'])) {
+        $errors['items'] = 'At least one item line is required';
     }
 
     if (!is_string($reason) || trim($reason) === '') {
@@ -44,33 +77,55 @@ route('POST', '/borrowings', function () {
 
     global $pdo;
 
+    // Sort lines by item ID so all requesters lock rows in the same
+    // order — this prevents deadlocks between concurrent borrowings.
+    usort($lines, static fn(array $a, array $b): int => $a['item_id'] <=> $b['item_id']);
+
     try {
         $pdo->beginTransaction();
 
-        // Lock the item so competing requests cannot borrow
-        // against the same available stock simultaneously.
+        // Lock every requested item row up front.
+        $placeholders = implode(', ', array_fill(0, count($lines), '?'));
         $stmt = $pdo->prepare(
-            'SELECT id, name, available_stock, is_active
+            "SELECT id, name, available_stock, is_active
              FROM items
-             WHERE id = ?
-             FOR UPDATE'
+             WHERE id IN ($placeholders)
+             FOR UPDATE"
         );
 
-        $stmt->execute([$itemId]);
-        $item = $stmt->fetch();
+        $stmt->execute(array_column($lines, 'item_id'));
 
-        if (!$item || !(bool)$item['is_active']) {
-            $pdo->rollBack();
-            json_error('Item not found or unavailable for borrowing', 404);
+        $lockedItems = [];
+        foreach ($stmt->fetchAll() as $row) {
+            $lockedItems[(int)$row['id']] = $row;
         }
 
-        if ($quantity > (int)$item['available_stock']) {
-            $available = (int)$item['available_stock'];
+        // Validate every line against the locked rows.
+        $stockProblems = [];
 
+        foreach ($lines as $line) {
+            $item = $lockedItems[$line['item_id']] ?? null;
+
+            if (!$item || !(bool)$item['is_active']) {
+                $stockProblems[] = [
+                    'item_id' => $line['item_id'],
+                    'problem' => 'not_available',
+                ];
+            } elseif ($line['quantity'] > (int)$item['available_stock']) {
+                $stockProblems[] = [
+                    'item_id' => $line['item_id'],
+                    'item_name' => $item['name'],
+                    'problem' => 'insufficient_stock',
+                    'available_stock' => (int)$item['available_stock'],
+                ];
+            }
+        }
+
+        if ($stockProblems) {
             $pdo->rollBack();
 
-            json_error('Not enough available stock', 409, [
-                'available_stock' => $available,
+            json_error('Borrowing could not be completed', 409, [
+                'problems' => $stockProblems,
             ]);
         }
 
@@ -83,30 +138,16 @@ route('POST', '/borrowings', function () {
              VALUES (?, ?, ?)'
         );
 
-        $stmt->execute([
-            $referenceCode,
-            $user['id'],
-            $reason,
-        ]);
-
+        $stmt->execute([$referenceCode, $user['id'], $reason]);
         $borrowingId = (int)$pdo->lastInsertId();
 
-        $stmt = $pdo->prepare(
+        $detailStmt = $pdo->prepare(
             'INSERT INTO borrowing_details
                 (borrowing_id, item_id, quantity_borrowed)
              VALUES (?, ?, ?)'
         );
 
-        $stmt->execute([
-            $borrowingId,
-            $itemId,
-            $quantity,
-        ]);
-
-        $detailId = (int)$pdo->lastInsertId();
-
-        // Keep a stock condition on the update as an extra safeguard.
-        $stmt = $pdo->prepare(
+        $stockStmt = $pdo->prepare(
             'UPDATE items
              SET available_stock = available_stock - ?,
                  borrowed_stock = borrowed_stock + ?
@@ -115,30 +156,44 @@ route('POST', '/borrowings', function () {
                AND available_stock >= ?'
         );
 
-        $stmt->execute([
-            $quantity,
-            $quantity,
-            $itemId,
-            $quantity,
-        ]);
-
-        if ($stmt->rowCount() !== 1) {
-            $pdo->rollBack();
-            json_error('Stock changed. Please try again', 409);
-        }
-
-        $stmt = $pdo->prepare(
+        $movementStmt = $pdo->prepare(
             "INSERT INTO stock_movements
                 (item_id, user_id, type, quantity, reason)
              VALUES (?, ?, 'OUT', ?, ?)"
         );
 
-        $stmt->execute([
-            $itemId,
-            $user['id'],
-            $quantity,
-            'Borrowed - ' . $referenceCode,
-        ]);
+        $responseDetails = [];
+
+        foreach ($lines as $line) {
+            $itemId = $line['item_id'];
+            $quantity = $line['quantity'];
+            $item = $lockedItems[$itemId];
+
+            $detailStmt->execute([$borrowingId, $itemId, $quantity]);
+            $detailId = (int)$pdo->lastInsertId();
+
+            $stockStmt->execute([$quantity, $quantity, $itemId, $quantity]);
+
+            if ($stockStmt->rowCount() !== 1) {
+                $pdo->rollBack();
+                json_error('Stock changed. Please try again', 409);
+            }
+
+            $movementStmt->execute([
+                $itemId,
+                $user['id'],
+                $quantity,
+                'Borrowed - ' . $referenceCode,
+            ]);
+
+            $responseDetails[] = [
+                'id' => $detailId,
+                'item_id' => $itemId,
+                'item_name' => $item['name'],
+                'quantity_borrowed' => $quantity,
+                'quantity_returned' => 0,
+            ];
+        }
 
         $pdo->commit();
     } catch (Throwable $e) {
@@ -156,15 +211,7 @@ route('POST', '/borrowings', function () {
             'user_id' => $user['id'],
             'reason' => $reason,
             'status' => 'borrowed',
-            'details' => [
-                [
-                    'id' => $detailId,
-                    'item_id' => $itemId,
-                    'item_name' => $item['name'],
-                    'quantity_borrowed' => $quantity,
-                    'quantity_returned' => 0,
-                ],
-            ],
+            'details' => $responseDetails,
         ],
     ], 201);
 });

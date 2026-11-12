@@ -29,7 +29,7 @@ function request_body(): array {
     try {
         $decoded = json_decode(
             $raw,
-            false,
+            true,
             512,
             JSON_THROW_ON_ERROR
         );
@@ -37,11 +37,11 @@ function request_body(): array {
         json_error('Invalid JSON body', 400);
     }
 
-    if (!$decoded instanceof stdClass) {
+    if (!is_array($decoded)) {
         json_error('Request body must be a JSON object', 400);
     }
 
-    return $parsed = (array)$decoded;
+    return $parsed = $decoded;
 }
 
 function body(string $key, mixed $default = null): mixed {
